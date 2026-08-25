@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>What's Cooking? — Snap your fridge, get dinner.</title>
+<meta name="description" content="Point your camera at your fridge and What's Cooking? turns whatever you have into recipes you can actually make — powered by AI vision." />
+<meta property="og:title" content="What's Cooking? — Snap your fridge, get dinner." />
+<meta property="og:description" content="AI that looks in your fridge and tells you what to cook. Join the TestFlight beta." />
+<meta property="og:type" content="website" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<style>
+  :root {
+    --orange: #FF6B35;
+    --orange-dark: #E4551F;
+    --green: #4CAF50;
+    --ink: #1E1B18;
+    --muted: #6B655F;
+    --card: #FFFFFF;
+    --bg: #FFFDFB;
+    --bg-tint: #FFF3ED;
+    --line: #F0E9E3;
+    --shadow: 0 12px 40px rgba(30, 27, 24, 0.08);
+    --shadow-sm: 0 4px 16px rgba(30, 27, 24, 0.06);
+    --radius: 20px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; text-decoration: none; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+
+  /* Nav */
+  header {
+    position: sticky; top: 0; z-index: 50;
+    backdrop-filter: saturate(180%) blur(12px);
+    background: rgba(255, 253, 251, 0.8);
+    border-bottom: 1px solid var(--line);
+  }
+  .nav { display: flex; align-items: center; justify-content: space-between; height: 66px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 19px; letter-spacing: -0.02em; }
+  .brand .logo {
+    width: 34px; height: 34px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--orange), #FF9138);
+    display: grid; place-items: center; font-size: 18px;
+    box-shadow: var(--shadow-sm);
+  }
+  .nav-cta {
+    background: var(--ink); color: #fff; font-weight: 650; font-size: 14px;
+    padding: 10px 18px; border-radius: 999px; transition: transform .15s ease, opacity .15s ease;
+  }
+  .nav-cta:hover { transform: translateY(-1px); opacity: .92; }
+
+  /* Hero */
+  .hero { position: relative; overflow: hidden; }
+  .hero::before {
+    content: ""; position: absolute; inset: 0;
+    background:
+      radial-gradient(1000px 500px at 85% -10%, rgba(255,107,53,0.14), transparent 60%),
+      radial-gradient(700px 400px at 5% 10%, rgba(76,175,80,0.10), transparent 60%);
+    pointer-events: none;
+  }
+  .hero-grid {
+    position: relative; display: grid; grid-template-columns: 1.1fr 0.9fr;
+    gap: 48px; align-items: center; padding: 72px 0 84px;
+  }
+  .pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--bg-tint); color: var(--orange-dark);
+    font-weight: 650; font-size: 13px; padding: 7px 14px; border-radius: 999px;
+    border: 1px solid #FBDCCB; margin-bottom: 22px;
+  }
+  .pill .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+  h1 {
+    font-size: clamp(38px, 5.4vw, 60px); line-height: 1.04;
+    letter-spacing: -0.03em; font-weight: 820; margin-bottom: 20px;
+  }
+  h1 .accent { color: var(--orange); }
+  .sub { font-size: clamp(17px, 2vw, 20px); color: var(--muted); max-width: 520px; margin-bottom: 32px; }
+  .cta-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .btn-store {
+    display: inline-flex; align-items: center; gap: 12px;
+    background: var(--ink); color: #fff; padding: 14px 22px; border-radius: 16px;
+    font-weight: 700; box-shadow: var(--shadow); transition: transform .15s ease;
+  }
+  .btn-store:hover { transform: translateY(-2px); }
+  .btn-store svg { width: 26px; height: 26px; }
+  .btn-store .small { font-size: 11px; font-weight: 500; opacity: .8; display: block; line-height: 1.1; }
+  .btn-store .big { font-size: 17px; font-weight: 750; line-height: 1.1; }
+  .link-secondary { color: var(--muted); font-weight: 600; font-size: 15px; }
+  .link-secondary:hover { color: var(--ink); }
+  .trust { margin-top: 26px; display: flex; gap: 22px; color: var(--muted); font-size: 14px; flex-wrap: wrap; }
+  .trust b { color: var(--ink); }
+
+  /* Phone mockup */
+  .phone-col { display: flex; justify-content: center; }
+  .phone {
+    width: 300px; height: 610px; border-radius: 46px; background: #111; padding: 12px;
+    box-shadow: 0 30px 80px rgba(30,27,24,0.28); position: relative; transform: rotate(2deg);
+  }
+  .phone::after { /* notch */
+    content: ""; position: absolute; top: 22px; left: 50%; transform: translateX(-50%);
+    width: 118px; height: 26px; background: #111; border-radius: 0 0 16px 16px; z-index: 3;
+  }
+  .screen {
+    width: 100%; height: 100%; border-radius: 36px; background: var(--bg);
+    overflow: hidden; display: flex; flex-direction: column;
+  }
+  .screen-head { background: linear-gradient(135deg, var(--orange), #FF9138); padding: 54px 20px 20px; color: #fff; }
+  .screen-head .kicker { font-size: 12px; opacity: .9; font-weight: 600; }
+  .screen-head .title { font-size: 20px; font-weight: 800; margin-top: 2px; }
+  .screen-body { padding: 16px; overflow: hidden; }
+  .chips { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 16px; }
+  .chip {
+    font-size: 11.5px; font-weight: 650; padding: 6px 11px; border-radius: 999px;
+    background: #fff; border: 1px solid var(--line); display: inline-flex; align-items: center; gap: 6px;
+  }
+  .chip .c { width: 7px; height: 7px; border-radius: 50%; }
+  .rc {
+    background: #fff; border: 1px solid var(--line); border-radius: 16px;
+    padding: 14px; box-shadow: var(--shadow-sm); margin-bottom: 12px;
+  }
+  .rc h4 { font-size: 15px; font-weight: 750; margin-bottom: 8px; }
+  .rc .badges { display: flex; gap: 7px; }
+  .badge { font-size: 11px; font-weight: 700; padding: 4px 9px; border-radius: 8px; }
+  .badge.time { background: var(--bg-tint); color: var(--orange-dark); }
+  .badge.easy { background: #E8F5E9; color: #2E7D32; }
+  .rc .ings { margin-top: 10px; display: flex; flex-direction: column; gap: 5px; font-size: 12px; color: var(--muted); }
+  .rc .ings span::before { content: "✓ "; color: var(--green); font-weight: 800; }
+  .rc .ings span.buy::before { content: "🛒 "; }
+
+  /* Sections */
+  section { padding: 84px 0; }
+  .section-tag { color: var(--orange); font-weight: 750; font-size: 14px; letter-spacing: .04em; text-transform: uppercase; }
+  h2 { font-size: clamp(28px, 3.6vw, 40px); letter-spacing: -0.02em; font-weight: 800; margin: 10px 0 14px; }
+  .section-sub { color: var(--muted); font-size: 18px; max-width: 620px; }
+
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 48px; }
+  .step { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 28px; box-shadow: var(--shadow-sm); }
+  .step .n { width: 40px; height: 40px; border-radius: 12px; background: var(--bg-tint); color: var(--orange-dark); font-weight: 800; display: grid; place-items: center; font-size: 18px; margin-bottom: 16px; }
+  .step h3 { font-size: 19px; font-weight: 750; margin-bottom: 6px; }
+  .step p { color: var(--muted); font-size: 15px; }
+
+  .features { background: var(--bg-tint); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-top: 48px; }
+  .feature { display: flex; gap: 16px; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow-sm); }
+  .feature .ic { flex: none; width: 46px; height: 46px; border-radius: 12px; display: grid; place-items: center; font-size: 22px; background: var(--bg-tint); }
+  .feature h3 { font-size: 18px; font-weight: 750; margin-bottom: 4px; }
+  .feature p { color: var(--muted); font-size: 15px; }
+
+  /* CTA band */
+  .cta-band { text-align: center; }
+  .cta-card {
+    background: linear-gradient(135deg, var(--orange), #FF9138); color: #fff;
+    border-radius: 28px; padding: 56px 32px; box-shadow: var(--shadow);
+  }
+  .cta-card h2 { color: #fff; }
+  .cta-card p { color: rgba(255,255,255,0.92); font-size: 18px; max-width: 520px; margin: 0 auto 28px; }
+  .cta-card .btn-store { background: #fff; color: var(--ink); }
+
+  footer { padding: 40px 0 56px; color: var(--muted); font-size: 14px; }
+  .foot { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; border-top: 1px solid var(--line); padding-top: 28px; }
+  .foot a { color: var(--muted); } .foot a:hover { color: var(--ink); }
+  .foot-links { display: flex; gap: 22px; }
+
+  @media (max-width: 860px) {
+    .hero-grid { grid-template-columns: 1fr; gap: 40px; padding: 48px 0 64px; }
+    .phone-col { order: -1; }
+    .steps { grid-template-columns: 1fr; }
+    .grid { grid-template-columns: 1fr; }
+    .sub { margin-left: auto; margin-right: auto; }
+    .hero-grid .cta-row, .hero-grid .trust, .hero-grid h1, .hero-grid .sub, .hero-grid .pill { text-align: center; }
+    .hero-copy { text-align: center; display: flex; flex-direction: column; align-items: center; }
+  }
+</style>
+</head>
+<body>
+
+<!--
+  DOWNLOAD LINK: replace every href="#download" target below (the ⬇ buttons)
+  with your public TestFlight invite URL, e.g. https://testflight.apple.com/join/XXXXXXXX
+  Then set --testflight in one place is not used; search-replace "#download".
+-->
+
+<header>
+  <div class="wrap nav">
+    <div class="brand"><span class="logo">🍳</span> What's Cooking?</div>
+    <a class="nav-cta" href="#download">Get the app</a>
+  </div>
+</header>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <span class="pill"><span class="dot"></span> Now in TestFlight beta</span>
+      <h1>Snap your fridge.<br /><span class="accent">Get dinner.</span></h1>
+      <p class="sub">Point your camera at whatever you've got — fridge, pantry, spice rack — and our AI tells you exactly what you can cook right now. No meal planning. No "what's for dinner?"</p>
+      <div class="cta-row">
+        <a class="btn-store" href="#download" aria-label="Join the TestFlight beta">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.365 1.43c0 1.14-.417 2.2-1.253 3.06-.99 1.02-2.19 1.61-3.29 1.5-.13-1.11.42-2.28 1.2-3.06.86-.87 2.33-1.5 3.34-1.5zM20.6 17.02c-.55 1.27-.82 1.84-1.53 2.96-1 1.57-2.4 3.52-4.14 3.53-1.55.02-1.95-.99-4.05-.98-2.1.01-2.54.99-4.09.97-1.74-.02-3.07-1.78-4.06-3.34-2.78-4.4-3.07-9.55-1.36-12.29 1.22-1.95 3.14-3.09 4.94-3.09 1.84 0 3 .99 4.52.99 1.47 0 2.37-.99 4.5-.99 1.6 0 3.3.86 4.51 2.35-3.96 2.13-3.32 7.75.31 9.88z"/></svg>
+          <span><span class="small">Join the beta on</span><span class="big">TestFlight</span></span>
+        </a>
+        <a class="link-secondary" href="#how">See how it works →</a>
+      </div>
+      <div class="trust">
+        <span>🥕 <b>Any</b> ingredients</span>
+        <span>⚡ <b>Recipes in seconds</b></span>
+        <span>🌱 Veg, vegan &amp; GF aware</span>
+      </div>
+    </div>
+
+    <!-- Phone mockup -->
+    <div class="phone-col">
+      <div class="phone">
+        <div class="screen">
+          <div class="screen-head">
+            <div class="kicker">I spotted…</div>
+            <div class="title">12 ingredients 🎉</div>
+          </div>
+          <div class="screen-body">
+            <div class="chips">
+              <span class="chip"><span class="c" style="background:var(--green)"></span>Spinach</span>
+              <span class="chip"><span class="c" style="background:var(--green)"></span>Cherry tomatoes</span>
+              <span class="chip"><span class="c" style="background:var(--green)"></span>Eggs</span>
+              <span class="chip"><span class="c" style="background:#F5A623"></span>Thyme</span>
+              <span class="chip"><span class="c" style="background:var(--green)"></span>Broccoli</span>
+              <span class="chip"><span class="c" style="background:#F5A623"></span>Sage</span>
+            </div>
+            <div class="rc">
+              <h4>Garden Frittata with Herbs</h4>
+              <div class="badges"><span class="badge time">⏱ 20 min</span><span class="badge easy">Easy</span></div>
+              <div class="ings">
+                <span>Eggs</span><span>Spinach</span><span>Cherry tomatoes</span>
+                <span class="buy">Olive oil</span>
+              </div>
+            </div>
+            <div class="rc">
+              <h4>Herb-Roasted Broccoli</h4>
+              <div class="badges"><span class="badge time">⏱ 15 min</span><span class="badge easy">Easy</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<section id="how" class="wrap">
+  <span class="section-tag">How it works</span>
+  <h2>Three taps to dinner.</h2>
+  <p class="section-sub">No typing in ingredients, no browsing endless recipes. Just point and cook.</p>
+  <div class="steps">
+    <div class="step"><div class="n">1</div><h3>📸 Snap</h3><p>Open your fridge and take a photo. Add your pantry or spice cabinet too — the more it sees, the better it cooks.</p></div>
+    <div class="step"><div class="n">2</div><h3>🔍 Identify</h3><p>AI vision reads every ingredient across your photos, with a confidence check so it never makes things up.</p></div>
+    <div class="step"><div class="n">3</div><h3>🍽️ Cook</h3><p>Get 3 real recipes ranked by what you already have, with steps and a tidy shopping list for anything you're missing.</p></div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<div class="features">
+  <section class="wrap" style="padding:72px 0;">
+    <span class="section-tag">Why you'll love it</span>
+    <h2>Built for real kitchens.</h2>
+    <div class="grid">
+      <div class="feature"><div class="ic">🧠</div><div><h3>Recipes invented for you</h3><p>Not a fixed database — the AI creates dishes around exactly what's on your shelves.</p></div></div>
+      <div class="feature"><div class="ic">📷</div><div><h3>Multi-photo scans</h3><p>Fridge + pantry + spice rack in one go. It combines everything into a single ingredient list.</p></div></div>
+      <div class="feature"><div class="ic">🌱</div><div><h3>Diet-aware</h3><p>Vegetarian, vegan, and gluten-free toggles are respected in every suggestion.</p></div></div>
+      <div class="feature"><div class="ic">✨</div><div><h3>Surprise me</h3><p>Feeling adventurous? Get the most creative dish your ingredients can pull off.</p></div></div>
+    </div>
+  </section>
+</div>
+
+<!-- DOWNLOAD CTA -->
+<section id="download" class="wrap cta-band">
+  <div class="cta-card">
+    <h2>Ready to raid your fridge?</h2>
+    <p>Join the TestFlight beta and turn "there's nothing to eat" into dinner in seconds.</p>
+    <a class="btn-store" href="#download" aria-label="Join the TestFlight beta">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.365 1.43c0 1.14-.417 2.2-1.253 3.06-.99 1.02-2.19 1.61-3.29 1.5-.13-1.11.42-2.28 1.2-3.06.86-.87 2.33-1.5 3.34-1.5zM20.6 17.02c-.55 1.27-.82 1.84-1.53 2.96-1 1.57-2.4 3.52-4.14 3.53-1.55.02-1.95-.99-4.05-.98-2.1.01-2.54.99-4.09.97-1.74-.02-3.07-1.78-4.06-3.34-2.78-4.4-3.07-9.55-1.36-12.29 1.22-1.95 3.14-3.09 4.94-3.09 1.84 0 3 .99 4.52.99 1.47 0 2.37-.99 4.5-.99 1.6 0 3.3.86 4.51 2.35-3.96 2.13-3.32 7.75.31 9.88z"/></svg>
+      <span><span class="small" style="opacity:.65">Join the beta on</span><span class="big">TestFlight</span></span>
+    </a>
+    <p style="margin-top:18px; font-size:14px; opacity:.8;">📱 iPhone · iOS 16+ &nbsp;•&nbsp; App Store release coming soon</p>
+  </div>
+</section>
+
+<footer class="wrap">
+  <div class="foot">
+    <div class="brand" style="font-size:16px;"><span class="logo" style="width:28px;height:28px;font-size:15px;">🍳</span> What's Cooking?</div>
+    <div class="foot-links">
+      <a href="#how">How it works</a>
+      <a href="#download">Download</a>
+      <a href="https://github.com/tmoreton/whats-cooking">GitHub</a>
+    </div>
+    <div>© 2026 What's Cooking?</div>
+  </div>
+</footer>
+
+</body>
+</html>
