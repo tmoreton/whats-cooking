@@ -1,7 +1,9 @@
 import React, { useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Image,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -112,6 +114,10 @@ export default function CameraScreen() {
     router.replace("/results");
   };
 
+  const removeShot = (index: number) => {
+    setShots((prev) => prev.filter((_, i) => i !== index));
+  };
+
   return (
     <View style={styles.root}>
       <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing="back" />
@@ -131,6 +137,34 @@ export default function CameraScreen() {
 
       {/* Framing guide */}
       <View pointerEvents="none" style={styles.frameGuide} />
+
+      {/* Captured-photo thumbnails */}
+      {shots.length > 0 ? (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={[styles.thumbStrip, { bottom: insets.bottom + 128 }]}
+          contentContainerStyle={styles.thumbStripContent}
+        >
+          {shots.map((shot, index) => (
+            <View key={index} style={styles.thumb}>
+              <Image
+                source={{ uri: `data:image/png;base64,${shot}` }}
+                style={styles.thumbImg}
+              />
+              <Pressable
+                onPress={() => removeShot(index)}
+                style={styles.thumbRemove}
+                accessibilityRole="button"
+                accessibilityLabel={`Remove photo ${index + 1}`}
+                hitSlop={8}
+              >
+                <Text style={styles.thumbRemoveText}>×</Text>
+              </Pressable>
+            </View>
+          ))}
+        </ScrollView>
+      ) : null}
 
       {/* Bottom controls */}
       <View
@@ -221,6 +255,47 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "rgba(255,255,255,0.6)",
     borderRadius: radii.lg,
+  },
+  thumbStrip: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    maxHeight: 76,
+  },
+  thumbStripContent: {
+    paddingHorizontal: spacing.lg,
+    gap: spacing.sm,
+    alignItems: "center",
+  },
+  thumb: {
+    width: 60,
+    height: 60,
+    borderRadius: radii.md,
+    overflow: "visible",
+  },
+  thumbImg: {
+    width: 60,
+    height: 60,
+    borderRadius: radii.md,
+    borderWidth: 2,
+    borderColor: "rgba(255,255,255,0.85)",
+  },
+  thumbRemove: {
+    position: "absolute",
+    top: -6,
+    right: -6,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: colors.overlay,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  thumbRemoveText: {
+    color: colors.white,
+    fontSize: 16,
+    fontWeight: "800",
+    lineHeight: 18,
   },
   bottomOverlay: {
     position: "absolute",

@@ -18,6 +18,7 @@ import {
   typography,
 } from "@/constants/theme";
 import {
+  clearRecentScans,
   DEFAULT_PREFERENCES,
   loadMode,
   loadPreferences,
@@ -90,6 +91,11 @@ export default function HomeScreen() {
     router.push({ pathname: "/results", params: { scanId: scan.id } });
   };
 
+  const clearRecent = () => {
+    setRecent([]);
+    void clearRecentScans();
+  };
+
   return (
     <View style={styles.root}>
       <ScrollView
@@ -108,7 +114,7 @@ export default function HomeScreen() {
           <Text style={styles.headerEmoji}>🍳</Text>
           <Text style={styles.headerTitle}>What's Cooking?</Text>
           <Text style={styles.headerSubtitle}>
-            Snap your fridge, get recipe ideas in seconds.
+            Snap your fridge, pantry &amp; spice rack for instant recipe ideas.
           </Text>
         </LinearGradient>
 
@@ -125,7 +131,9 @@ export default function HomeScreen() {
           >
             <Text style={styles.openButtonEmoji}>🥶</Text>
             <Text style={styles.openButtonText}>Open Fridge</Text>
-            <Text style={styles.openButtonHint}>Tap to snap a photo</Text>
+            <Text style={styles.openButtonHint}>
+              Snap one or more shelves — fridge, pantry, spices
+            </Text>
           </Pressable>
 
           {/* Dietary preferences */}
@@ -167,7 +175,17 @@ export default function HomeScreen() {
           {/* Recent scans */}
           {recent.length > 0 ? (
             <View style={styles.recentSection}>
-              <Text style={styles.sectionTitle}>Recent scans</Text>
+              <View style={styles.recentHeader}>
+                <Text style={styles.sectionTitle}>Recent scans</Text>
+                <Pressable
+                  onPress={clearRecent}
+                  hitSlop={8}
+                  accessibilityRole="button"
+                  accessibilityLabel="Clear recent scans"
+                >
+                  <Text style={styles.clearText}>Clear</Text>
+                </Pressable>
+              </View>
               {recent.map((scan) => (
                 <Pressable
                   key={scan.id}
@@ -229,6 +247,7 @@ function PrefRow({
       <Switch
         value={value}
         onValueChange={onChange}
+        accessibilityLabel={label}
         trackColor={{ false: "#D9D9DE", true: colors.primary }}
         thumbColor={colors.white}
         ios_backgroundColor="#D9D9DE"
@@ -334,9 +353,18 @@ const styles = StyleSheet.create({
   recentSection: {
     marginTop: spacing.sm,
   },
+  recentHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: spacing.md,
+  },
+  clearText: {
+    ...typography.label,
+    color: colors.primary,
+  },
   sectionTitle: {
     ...typography.heading,
-    marginBottom: spacing.md,
   },
   recentRow: {
     flexDirection: "row",

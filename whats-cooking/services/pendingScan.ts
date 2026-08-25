@@ -21,11 +21,3 @@ export function consumePendingScan(): string[] {
   pendingImages = [];
   return value;
 }
-
-export function peekPendingScan(): string[] {
-  return pendingImages;
-}
-
-export function clearPendingScan(): void {
-  pendingImages = [];
-}
