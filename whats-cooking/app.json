@@ -44,6 +44,13 @@
         {
           "cameraPermission": "What's Cooking? needs access to your camera so you can snap a photo of your fridge and get recipe suggestions."
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#FF6B35"
+        }
       ]
     ],
     "experiments": {
