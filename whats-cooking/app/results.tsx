@@ -103,7 +103,7 @@ export default function ResultsScreen() {
   if (phase === "loading") {
     return (
       <View style={styles.centered}>
-        <LoadingAnimation message="Looking inside your fridge…" />
+        <LoadingAnimation />
       </View>
     );
   }

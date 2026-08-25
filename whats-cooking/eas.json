@@ -13,10 +13,12 @@
     },
     "preview": {
       "distribution": "internal",
+      "channel": "preview",
       "ios": {}
     },
     "production": {
       "autoIncrement": true,
+      "channel": "production",
       "ios": {}
     }
   },

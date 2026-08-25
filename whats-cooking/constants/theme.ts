@@ -44,7 +44,7 @@ export const radii = {
   pill: 999,
 } as const;
 
-export const typography: Record<string, TextStyle> = {
+export const typography = {
   title: {
     fontSize: 28,
     fontWeight: "700",
@@ -75,7 +75,7 @@ export const typography: Record<string, TextStyle> = {
     fontWeight: "600",
     color: colors.textSecondary,
   },
-};
+} satisfies Record<string, TextStyle>;
 
 export const shadow: ViewStyle = Platform.select<ViewStyle>({
   ios: {

@@ -1,20 +1,33 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Animated, Easing, StyleSheet, Text, View } from "react-native";
 import { colors, spacing, typography } from "@/constants/theme";
+
+const MESSAGES = [
+  "Peeking inside your fridge…",
+  "Spotting your ingredients…",
+  "Dreaming up recipes…",
+  "Plating your options…",
+];
 
 /**
  * Pure React Native Animated cooking animation — no external Lottie asset
  * required. A pot rocks gently while three "ingredients" bob up and down above
- * it, and steam drifts upward. Everything is driven by looping Animated values.
+ * it, and steam drifts upward. The caption rotates through a few playful lines
+ * so long waits feel lively. Everything is driven by looping Animated values.
  */
-export default function LoadingAnimation({
-  message = "Cooking up ideas…",
-}: {
-  message?: string;
-}) {
+export default function LoadingAnimation() {
   const rock = useRef(new Animated.Value(0)).current;
   const bob = useRef(new Animated.Value(0)).current;
   const steam = useRef(new Animated.Value(0)).current;
+  const [msgIdx, setMsgIdx] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(
+      () => setMsgIdx((i) => (i + 1) % MESSAGES.length),
+      2200
+    );
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     const rockLoop = Animated.loop(
@@ -138,7 +151,7 @@ export default function LoadingAnimation({
         </Animated.Text>
       </View>
 
-      <Text style={styles.message}>{message}</Text>
+      <Text style={styles.message}>{MESSAGES[msgIdx]}</Text>
     </View>
   );
 }

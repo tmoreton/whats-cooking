@@ -9,6 +9,7 @@ import {
   UIManager,
   View,
 } from "react-native";
+import * as Haptics from "expo-haptics";
 import { Recipe } from "@/types/recipe";
 import {
   colors,
@@ -50,6 +51,7 @@ export default function RecipeCard({ recipe }: Props) {
   const [expanded, setExpanded] = useState(false);
 
   const toggle = () => {
+    void Haptics.selectionAsync();
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setExpanded((prev) => !prev);
   };

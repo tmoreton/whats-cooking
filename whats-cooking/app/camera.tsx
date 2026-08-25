@@ -13,6 +13,7 @@ import {
   useCameraPermissions,
 } from "expo-camera";
 import * as ImageManipulator from "expo-image-manipulator";
+import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { colors, radii, spacing, typography } from "@/constants/theme";
@@ -98,6 +99,7 @@ export default function CameraScreen() {
 
       // Add this shot to the collection; the user can keep snapping (fridge,
       // pantry, spice cabinet…) and tap Done when finished.
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       setShots((prev) => [...prev, manipulated.base64 as string]);
     } catch {
       // Swallow the error; the shutter stays available to retry.
@@ -108,6 +110,7 @@ export default function CameraScreen() {
 
   const handleDone = () => {
     if (shots.length === 0) return;
+    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     // Stash all captured photos in the in-memory singleton (router params
     // can't safely carry large base64 strings), then navigate to results.
     setPendingScan(shots);

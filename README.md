@@ -65,10 +65,15 @@ eas login
 eas init                            # links to your Expo account, prints a project ID
 ```
 
-Paste the printed **project ID** into `whats-cooking/app.json` →
-`expo.extra.eas.projectId` (it currently reads `REPLACE_WITH_EAS_PROJECT_ID` —
-**the build fails until this is a real ID**). Then let EAS manage signing and
-store your ASC API key:
+`eas init` prints a **project ID**. The quickest way to wire it everywhere is:
+
+```bash
+eas update:configure     # fills expo.extra.eas.projectId AND expo.updates.url
+```
+
+That replaces the two `REPLACE_WITH_EAS_PROJECT_ID` placeholders in `app.json`
+(`expo.extra.eas.projectId` and `expo.updates.url`) — **the build fails until
+these are real**. Then let EAS manage signing and store your ASC API key:
 
 ```bash
 eas credentials
@@ -109,6 +114,27 @@ once Apple finishes processing.
 ### Build locally instead (no GitHub Actions)
 
 From `whats-cooking/`: `eas build -p ios --profile production --auto-submit`.
+
+---
+
+## 📡 Over-the-air updates (EAS Update)
+
+The app ships with `expo-updates` and is wired for [EAS Update](https://docs.expo.dev/eas-update/introduction/),
+so you can push **JS/asset** changes to already-installed builds without a new
+TestFlight submission. Production builds subscribe to the `production` channel
+(`eas.json`); `runtimeVersion` uses the `appVersion` policy.
+
+```bash
+cd whats-cooking
+eas update --branch production --message "Tweak copy / fix bug"
+```
+
+Installed apps on a matching runtime version pick up the update on next launch.
+
+**Caveat:** OTA updates only cover JavaScript and assets. Anything that changes
+native code — adding/upgrading a native module, bumping the Expo SDK, or editing
+`app.json` native config — requires a **new build** (bump `version`, so the
+`runtimeVersion` changes, and re-run the TestFlight flow above).
 
 ---
 
