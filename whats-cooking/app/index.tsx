@@ -5,8 +5,11 @@ import {
   StyleSheet,
   Switch,
   Text,
+  TextStyle,
   View,
+  ViewStyle,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -14,6 +17,7 @@ import {
   colors,
   radii,
   shadow,
+  shadowLg,
   spacing,
   typography,
 } from "@/constants/theme";
@@ -40,13 +44,14 @@ function formatWhen(ts: number): string {
   return `${days}d ago`;
 }
 
+type IonName = React.ComponentProps<typeof Ionicons>["name"];
+
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const [prefs, setPrefs] = useState<DietaryPreferences>(DEFAULT_PREFERENCES);
   const [mode, setMode] = useState<ScanMode>("normal");
   const [recent, setRecent] = useState<RecentScan[]>([]);
 
-  // Reload persisted state each time the screen gains focus.
   useFocusEffect(
     useCallback(() => {
       let active = true;
@@ -69,10 +74,7 @@ export default function HomeScreen() {
 
   const updatePref = (key: keyof DietaryPreferences, value: boolean) => {
     const next: DietaryPreferences = { ...prefs, [key]: value };
-    // Vegan implies vegetarian for a sensible UX.
-    if (key === "vegan" && value) {
-      next.vegetarian = true;
-    }
+    if (key === "vegan" && value) next.vegetarian = true;
     setPrefs(next);
     void savePreferences(next);
   };
@@ -83,14 +85,9 @@ export default function HomeScreen() {
     void saveMode(next);
   };
 
-  const openCamera = () => {
-    router.push("/camera");
-  };
-
-  const openRecent = (scan: RecentScan) => {
+  const openCamera = () => router.push("/camera");
+  const openRecent = (scan: RecentScan) =>
     router.push({ pathname: "/results", params: { scanId: scan.id } });
-  };
-
   const clearRecent = () => {
     setRecent([]);
     void clearRecentScans();
@@ -111,61 +108,71 @@ export default function HomeScreen() {
           end={{ x: 1, y: 1 }}
           style={[styles.header, { paddingTop: insets.top + spacing.xl }]}
         >
-          <Text style={styles.headerEmoji}>🍳</Text>
-          <Text style={styles.headerTitle}>What's Cooking?</Text>
+          <Text style={styles.eyebrow}>What's Cooking?</Text>
+          <Text style={styles.headerTitle}>
+            Turn what you have{"\n"}into what you eat.
+          </Text>
           <Text style={styles.headerSubtitle}>
-            Snap your fridge, pantry &amp; spice rack for instant recipe ideas.
+            Snap your fridge, pantry &amp; spice rack — get real recipes in seconds.
           </Text>
         </LinearGradient>
 
         <View style={styles.body}>
+          {/* Primary CTA */}
           <Pressable
             onPress={openCamera}
-            style={({ pressed }) => [
-              styles.openButton,
-              shadow,
-              pressed && styles.openButtonPressed,
-            ]}
+            style={({ pressed }) => [pressed && styles.ctaPressed]}
             accessibilityRole="button"
-            accessibilityLabel="Open fridge and take a photo"
+            accessibilityLabel="Start a new scan"
           >
-            <Text style={styles.openButtonEmoji}>🥶</Text>
-            <Text style={styles.openButtonText}>Open Fridge</Text>
-            <Text style={styles.openButtonHint}>
-              Snap one or more shelves — fridge, pantry, spices
-            </Text>
+            <LinearGradient
+              colors={[colors.primary, colors.primaryDark]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={[styles.cta, shadowLg]}
+            >
+              <View style={styles.ctaIconWrap}>
+                <Ionicons name="camera" size={26} color={colors.white} />
+              </View>
+              <View style={styles.ctaText}>
+                <Text style={styles.ctaTitle}>Start a scan</Text>
+                <Text style={styles.ctaSubtitle}>
+                  Fridge, pantry &amp; spices — snap as many as you like
+                </Text>
+              </View>
+              <Ionicons name="arrow-forward" size={22} color={colors.white} />
+            </LinearGradient>
           </Pressable>
 
-          {/* Dietary preferences */}
+          {/* Preferences */}
+          <SectionLabel icon="options-outline" text="Preferences" />
           <View style={[styles.card, shadow]}>
-            <Text style={styles.cardTitle}>Dietary preferences</Text>
             <PrefRow
               label="Vegetarian"
-              emoji="🥗"
+              icon="leaf-outline"
               value={prefs.vegetarian}
               onChange={(v) => updatePref("vegetarian", v)}
             />
             <PrefRow
               label="Vegan"
-              emoji="🌱"
+              icon="flower-outline"
               value={prefs.vegan}
               onChange={(v) => updatePref("vegan", v)}
             />
             <PrefRow
               label="Gluten-free"
-              emoji="🌾"
+              icon="nutrition-outline"
               value={prefs.glutenFree}
               onChange={(v) => updatePref("glutenFree", v)}
               last
             />
           </View>
 
-          {/* Surprise me */}
-          <View style={[styles.card, shadow]}>
+          <View style={[styles.card, styles.cardSpaced, shadow]}>
             <PrefRow
               label="Surprise me"
-              emoji="🎲"
               sublabel="Bolder, more creative suggestions"
+              icon="sparkles-outline"
               value={mode === "surprise"}
               onChange={updateMode}
               last
@@ -176,7 +183,7 @@ export default function HomeScreen() {
           {recent.length > 0 ? (
             <View style={styles.recentSection}>
               <View style={styles.recentHeader}>
-                <Text style={styles.sectionTitle}>Recent scans</Text>
+                <SectionLabel icon="time-outline" text="Recent scans" inline />
                 <Pressable
                   onPress={clearRecent}
                   hitSlop={8}
@@ -197,24 +204,43 @@ export default function HomeScreen() {
                   ]}
                   accessibilityRole="button"
                 >
-                  <Text style={styles.recentEmoji}>🍽️</Text>
+                  <View style={styles.recentIconWrap}>
+                    <Ionicons
+                      name="restaurant-outline"
+                      size={20}
+                      color={colors.primary}
+                    />
+                  </View>
                   <View style={styles.recentInfo}>
                     <Text style={styles.recentTitle} numberOfLines={1}>
                       {scan.title}
                     </Text>
                     <Text style={styles.recentMeta}>
-                      {scan.ingredientCount} ingredients ·{" "}
-                      {formatWhen(scan.timestamp)}
+                      {scan.ingredientCount} ingredients · {formatWhen(scan.timestamp)}
                     </Text>
                   </View>
-                  <Text style={styles.recentChevron}>›</Text>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={20}
+                    color={colors.textMuted}
+                  />
                 </Pressable>
               ))}
             </View>
           ) : (
-            <Text style={styles.emptyRecent}>
-              Your recent scans will show up here.
-            </Text>
+            <View style={styles.recentSection}>
+              <SectionLabel icon="time-outline" text="Recent scans" />
+              <View style={[styles.emptyRecent, shadow]}>
+                <Ionicons
+                  name="images-outline"
+                  size={26}
+                  color={colors.textMuted}
+                />
+                <Text style={styles.emptyRecentText}>
+                  Your recent scans will show up here.
+                </Text>
+              </View>
+            </View>
           )}
         </View>
       </ScrollView>
@@ -222,16 +248,33 @@ export default function HomeScreen() {
   );
 }
 
+function SectionLabel({
+  icon,
+  text,
+  inline = false,
+}: {
+  icon: IonName;
+  text: string;
+  inline?: boolean;
+}) {
+  return (
+    <View style={[styles.sectionLabel, inline && { marginBottom: 0 }]}>
+      <Ionicons name={icon} size={14} color={colors.textSecondary} />
+      <Text style={styles.sectionLabelText}>{text}</Text>
+    </View>
+  );
+}
+
 function PrefRow({
   label,
-  emoji,
+  icon,
   sublabel,
   value,
   onChange,
   last,
 }: {
   label: string;
-  emoji: string;
+  icon: IonName;
   sublabel?: string;
   value: boolean;
   onChange: (v: boolean) => void;
@@ -239,7 +282,13 @@ function PrefRow({
 }) {
   return (
     <View style={[styles.prefRow, !last && styles.prefRowBorder]}>
-      <Text style={styles.prefEmoji}>{emoji}</Text>
+      <View style={styles.prefIconWrap}>
+        <Ionicons
+          name={icon}
+          size={18}
+          color={value ? colors.primary : colors.textSecondary}
+        />
+      </View>
       <View style={styles.prefLabelWrap}>
         <Text style={styles.prefLabel}>{label}</Text>
         {sublabel ? <Text style={styles.prefSublabel}>{sublabel}</Text> : null}
@@ -256,92 +305,107 @@ function PrefRow({
   );
 }
 
+// Cast fights an @types/react-native strict-mode widening when a single
+// StyleSheet.create call mixes many View-only and Text-only styles.
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  scroll: {
-    flexGrow: 1,
-  },
+  root: { flex: 1, backgroundColor: colors.background },
+  scroll: { flexGrow: 1 },
   header: {
     paddingHorizontal: spacing.xl,
-    paddingBottom: spacing.xxl,
+    paddingBottom: spacing.xxl + spacing.md,
     borderBottomLeftRadius: radii.xl,
     borderBottomRightRadius: radii.xl,
   },
-  headerEmoji: {
-    fontSize: 44,
+  eyebrow: {
+    fontSize: 12,
+    fontWeight: "700",
+    letterSpacing: 1.2,
+    textTransform: "uppercase",
+    color: "rgba(255,255,255,0.75)",
     marginBottom: spacing.sm,
   },
   headerTitle: {
-    fontSize: 32,
+    fontSize: 30,
     fontWeight: "800",
     color: colors.white,
+    letterSpacing: -0.6,
+    lineHeight: 36,
   },
   headerSubtitle: {
     fontSize: 15,
     color: "rgba(255,255,255,0.9)",
-    marginTop: spacing.xs,
+    marginTop: spacing.sm,
+    lineHeight: 21,
   },
   body: {
     padding: spacing.lg,
+    marginTop: -spacing.xl,
   },
-  openButton: {
-    backgroundColor: colors.white,
-    borderRadius: radii.xl,
-    borderWidth: 2,
-    borderColor: colors.primary,
-    paddingVertical: spacing.xxl,
+  cta: {
+    flexDirection: "row",
     alignItems: "center",
+    padding: spacing.lg,
+    borderRadius: radii.lg,
     marginBottom: spacing.xl,
   },
-  openButtonPressed: {
-    opacity: 0.85,
-    transform: [{ scale: 0.99 }],
+  ctaPressed: { transform: [{ scale: 0.99 }], opacity: 0.96 },
+  ctaIconWrap: {
+    width: 48,
+    height: 48,
+    borderRadius: radii.md,
+    backgroundColor: "rgba(255,255,255,0.18)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: spacing.md,
   },
-  openButtonEmoji: {
-    fontSize: 56,
+  ctaText: { flex: 1 },
+  ctaTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: colors.white,
+    letterSpacing: -0.2,
   },
-  openButtonText: {
-    fontSize: 22,
-    fontWeight: "800",
-    color: colors.primary,
-    marginTop: spacing.sm,
+  ctaSubtitle: {
+    fontSize: 13,
+    color: "rgba(255,255,255,0.9)",
+    marginTop: 2,
   },
-  openButtonHint: {
-    ...typography.caption,
-    marginTop: spacing.xs,
+  sectionLabel: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: spacing.sm,
+    gap: spacing.xs,
+  },
+  sectionLabelText: {
+    ...typography.label,
   },
   card: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderRadius: radii.lg,
     borderWidth: 1,
     borderColor: colors.cardBorder,
     paddingHorizontal: spacing.lg,
-    marginBottom: spacing.lg,
   },
-  cardTitle: {
-    ...typography.subheading,
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.xs,
-  },
+  cardSpaced: { marginTop: spacing.lg },
   prefRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.md + 2,
   },
   prefRowBorder: {
     borderBottomWidth: 1,
-    borderBottomColor: colors.cardBorder,
+    borderBottomColor: colors.divider,
   },
-  prefEmoji: {
-    fontSize: 22,
+  prefIconWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: colors.card,
+    alignItems: "center",
+    justifyContent: "center",
     marginRight: spacing.md,
   },
-  prefLabelWrap: {
-    flex: 1,
-  },
+  prefLabelWrap: { flex: 1 },
   prefLabel: {
     ...typography.body,
     fontWeight: "600",
@@ -350,42 +414,38 @@ const styles = StyleSheet.create({
     ...typography.caption,
     marginTop: 2,
   },
-  recentSection: {
-    marginTop: spacing.sm,
-  },
+  recentSection: { marginTop: spacing.xl },
   recentHeader: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: spacing.md,
+    marginBottom: spacing.sm,
   },
   clearText: {
     ...typography.label,
     color: colors.primary,
   },
-  sectionTitle: {
-    ...typography.heading,
-  },
   recentRow: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderRadius: radii.md,
     borderWidth: 1,
     borderColor: colors.cardBorder,
     padding: spacing.md,
-    marginBottom: spacing.md,
+    marginBottom: spacing.sm,
   },
-  recentRowPressed: {
-    opacity: 0.85,
-  },
-  recentEmoji: {
-    fontSize: 26,
+  recentRowPressed: { opacity: 0.85 },
+  recentIconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: colors.primarySoft,
+    alignItems: "center",
+    justifyContent: "center",
     marginRight: spacing.md,
   },
-  recentInfo: {
-    flex: 1,
-  },
+  recentInfo: { flex: 1 },
   recentTitle: {
     ...typography.body,
     fontWeight: "600",
@@ -394,14 +454,18 @@ const styles = StyleSheet.create({
     ...typography.caption,
     marginTop: 2,
   },
-  recentChevron: {
-    fontSize: 28,
-    color: colors.textMuted,
-    marginLeft: spacing.sm,
-  },
   emptyRecent: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: spacing.xl,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    borderColor: colors.cardBorder,
+    backgroundColor: colors.surface,
+    gap: spacing.sm,
+  },
+  emptyRecentText: {
     ...typography.caption,
     textAlign: "center",
-    marginTop: spacing.lg,
   },
-});
+}) as Record<string, ViewStyle & TextStyle>;

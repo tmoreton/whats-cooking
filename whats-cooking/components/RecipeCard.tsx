@@ -9,6 +9,7 @@ import {
   UIManager,
   View,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { Recipe } from "@/types/recipe";
 import {
@@ -77,25 +78,31 @@ export default function RecipeCard({ recipe }: Props) {
 
         <View style={styles.badgeRow}>
           <View style={[styles.badge, { backgroundColor: colors.card }]}>
-            <Text style={styles.badgeText}>⏱ {recipe.time_minutes} min</Text>
+            <Ionicons name="time-outline" size={13} color={colors.textSecondary} />
+            <Text style={styles.badgeText}>{recipe.time_minutes} min</Text>
           </View>
-          <View style={[styles.badge, { backgroundColor: `${diffColor}22` }]}>
+          <View style={[styles.badge, { backgroundColor: `${diffColor}18` }]}>
+            <View
+              style={[styles.diffDot, { backgroundColor: diffColor }]}
+            />
             <Text style={[styles.badgeText, { color: diffColor }]}>
               {recipe.difficulty}
             </Text>
           </View>
           {recipe.missing_count > 0 ? (
             <View style={[styles.badge, { backgroundColor: colors.card }]}>
+              <Ionicons name="cart-outline" size={13} color={colors.textSecondary} />
               <Text style={styles.badgeText}>
-                🛒 {recipe.missing_count} to buy
+                {recipe.missing_count} to buy
               </Text>
             </View>
           ) : (
             <View
               style={[styles.badge, { backgroundColor: colors.availableLight }]}
             >
+              <Ionicons name="checkmark-circle" size={13} color={colors.available} />
               <Text style={[styles.badgeText, { color: colors.available }]}>
-                ✓ You have it all
+                All in
               </Text>
             </View>
           )}
@@ -105,9 +112,13 @@ export default function RecipeCard({ recipe }: Props) {
       <View style={styles.ingredients}>
         {recipe.ingredients.map((ing, idx) => (
           <View key={`${ing.name}-${idx}`} style={styles.ingredientRow}>
-            <Text style={styles.ingredientIcon}>
-              {ing.available ? "✓" : "🛒"}
-            </Text>
+            <View style={styles.ingredientIconWrap}>
+              <Ionicons
+                name={ing.available ? "checkmark" : "cart-outline"}
+                size={14}
+                color={ing.available ? colors.available : colors.textMuted}
+              />
+            </View>
             <Text
               style={[
                 styles.ingredientText,
@@ -137,19 +148,30 @@ export default function RecipeCard({ recipe }: Props) {
       <View style={styles.actions}>
         <Pressable
           onPress={toggle}
-          style={styles.actionButton}
+          style={[styles.actionButton, styles.primaryAction]}
           accessibilityRole="button"
         >
-          <Text style={styles.actionText}>
+          <Ionicons
+            name={expanded ? "chevron-up" : "chevron-down"}
+            size={16}
+            color={colors.white}
+          />
+          <Text style={[styles.actionText, styles.primaryActionText]}>
             {expanded ? "Hide steps" : "Show steps"}
           </Text>
         </Pressable>
         <Pressable
           onPress={onShare}
-          style={[styles.actionButton, styles.shareButton]}
+          style={styles.actionIconButton}
           accessibilityRole="button"
+          accessibilityLabel="Share recipe"
+          hitSlop={8}
         >
-          <Text style={[styles.actionText, styles.shareText]}>Share</Text>
+          <Ionicons
+            name="share-outline"
+            size={20}
+            color={colors.textSecondary}
+          />
         </Pressable>
       </View>
     </View>
@@ -177,16 +199,25 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   badge: {
+    flexDirection: "row",
+    alignItems: "center",
     borderRadius: radii.pill,
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.md,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
     marginRight: spacing.sm,
     marginBottom: spacing.sm,
+    gap: 5,
   },
   badgeText: {
-    fontSize: 13,
-    fontWeight: "600",
+    fontSize: 12,
+    fontWeight: "700",
     color: colors.textSecondary,
+    letterSpacing: 0.1,
+  },
+  diffDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
   },
   ingredients: {
     marginTop: spacing.xs,
@@ -196,9 +227,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: spacing.xs,
   },
-  ingredientIcon: {
-    width: 24,
-    fontSize: 15,
+  ingredientIconWrap: {
+    width: 26,
+    alignItems: "center",
   },
   ingredientText: {
     ...typography.body,
@@ -243,27 +274,37 @@ const styles = StyleSheet.create({
   },
   actions: {
     flexDirection: "row",
+    alignItems: "center",
     marginTop: spacing.md,
+    gap: spacing.sm,
   },
   actionButton: {
     flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: spacing.md,
     borderRadius: radii.md,
-    alignItems: "center",
-    backgroundColor: colors.card,
-    marginRight: spacing.sm,
+    gap: 6,
   },
-  shareButton: {
-    backgroundColor: colors.primary,
-    marginRight: 0,
-    marginLeft: spacing.sm,
+  primaryAction: {
+    backgroundColor: colors.text,
   },
   actionText: {
-    fontSize: 15,
-    fontWeight: "600",
+    fontSize: 14,
+    fontWeight: "700",
     color: colors.textSecondary,
+    letterSpacing: -0.1,
   },
-  shareText: {
+  primaryActionText: {
     color: colors.white,
+  },
+  actionIconButton: {
+    width: 44,
+    height: 44,
+    borderRadius: radii.md,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.card,
   },
 });

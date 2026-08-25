@@ -5,15 +5,18 @@ export const colors = {
   primary: "#FF6B35",
   primaryDark: "#E85425",
   primaryLight: "#FF8C61",
-  available: "#4CAF50",
-  availableLight: "#E8F5E9",
-  missing: "#9E9E9E",
-  background: "#FFFFFF",
+  primarySoft: "#FFF3ED",
+  available: "#2E8B57",
+  availableLight: "#EAF5EE",
+  missing: "#9AA0A6",
+  background: "#FBFBFC",
+  surface: "#FFFFFF",
   card: "#F7F7F8",
-  cardBorder: "#ECECEE",
-  text: "#1A1A1A",
-  textSecondary: "#666666",
-  textMuted: "#999999",
+  cardBorder: "#EEECEA",
+  divider: "#F0EEEC",
+  text: "#141414",
+  textSecondary: "#5A5A5F",
+  textMuted: "#9A9A9F",
   white: "#FFFFFF",
   black: "#000000",
   overlay: "rgba(0,0,0,0.55)",
@@ -45,47 +48,72 @@ export const radii = {
 } as const;
 
 export const typography = {
+  display: {
+    fontSize: 34,
+    fontWeight: "800",
+    color: colors.text,
+    letterSpacing: -0.6,
+  },
   title: {
     fontSize: 28,
-    fontWeight: "700",
+    fontWeight: "800",
     color: colors.text,
+    letterSpacing: -0.4,
   },
   heading: {
     fontSize: 20,
     fontWeight: "700",
     color: colors.text,
+    letterSpacing: -0.2,
   },
   subheading: {
     fontSize: 16,
     fontWeight: "600",
     color: colors.text,
+    letterSpacing: -0.1,
   },
   body: {
     fontSize: 15,
     fontWeight: "400",
     color: colors.text,
+    lineHeight: 22,
   },
   caption: {
     fontSize: 13,
-    fontWeight: "400",
+    fontWeight: "500",
     color: colors.textSecondary,
   },
   label: {
-    fontSize: 13,
-    fontWeight: "600",
+    fontSize: 12,
+    fontWeight: "700",
     color: colors.textSecondary,
+    letterSpacing: 0.6,
+    textTransform: "uppercase",
   },
 } satisfies Record<string, TextStyle>;
 
 export const shadow: ViewStyle = Platform.select<ViewStyle>({
   ios: {
-    shadowColor: "#000",
+    shadowColor: "#0F0E0C",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
   },
   android: {
-    elevation: 3,
+    elevation: 2,
+  },
+  default: {},
+}) as ViewStyle;
+
+export const shadowLg: ViewStyle = Platform.select<ViewStyle>({
+  ios: {
+    shadowColor: "#0F0E0C",
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.12,
+    shadowRadius: 24,
+  },
+  android: {
+    elevation: 8,
   },
   default: {},
 }) as ViewStyle;

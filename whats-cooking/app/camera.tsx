@@ -12,6 +12,7 @@ import {
   CameraView,
   useCameraPermissions,
 } from "expo-camera";
+import { Ionicons } from "@expo/vector-icons";
 import * as ImageManipulator from "expo-image-manipulator";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
@@ -42,7 +43,9 @@ export default function CameraScreen() {
   if (!permission.granted) {
     return (
       <View style={[styles.centered, { padding: spacing.xl }]}>
-        <Text style={styles.deniedEmoji}>📷</Text>
+        <View style={styles.deniedIconWrap}>
+          <Ionicons name="camera-outline" size={40} color={colors.primary} />
+        </View>
         <Text style={styles.deniedTitle}>Camera access needed</Text>
         <Text style={styles.deniedBody}>
           What's Cooking? needs your camera to snap a photo of your fridge.
@@ -192,7 +195,7 @@ export default function CameraScreen() {
             {capturing ? (
               <ActivityIndicator color={colors.primary} />
             ) : (
-              <Text style={styles.shutterEmoji}>📸</Text>
+              <Ionicons name="camera" size={26} color={colors.primary} />
             )}
           </View>
         </Pressable>
@@ -363,12 +366,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  shutterEmoji: {
-    fontSize: 28,
-  },
-  deniedEmoji: {
-    fontSize: 52,
-    marginBottom: spacing.md,
+  deniedIconWrap: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    backgroundColor: colors.primarySoft,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: spacing.lg,
   },
   deniedTitle: {
     ...typography.heading,

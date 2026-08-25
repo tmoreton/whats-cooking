@@ -27,16 +27,13 @@ export default function IngredientChip({ label, confidence, available }: Props) 
     <View
       style={[
         styles.chip,
-        { borderColor: accent, backgroundColor: `${accent}1A` },
+        { borderColor: `${accent}44`, backgroundColor: `${accent}12` },
       ]}
     >
       <View style={[styles.dot, { backgroundColor: accent }]} />
       <Text style={styles.label} numberOfLines={1}>
         {label}
       </Text>
-      {confidence ? (
-        <Text style={[styles.meta, { color: accent }]}>{confidence}</Text>
-      ) : null}
     </View>
   );
 }
@@ -47,26 +44,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderWidth: 1,
     borderRadius: radii.pill,
-    paddingVertical: spacing.xs + 2,
-    paddingHorizontal: spacing.md,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
     marginRight: spacing.sm,
     marginBottom: spacing.sm,
   },
   dot: {
-    width: 8,
-    height: 8,
+    width: 7,
+    height: 7,
     borderRadius: 4,
-    marginRight: spacing.sm,
+    marginRight: 7,
   },
   label: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "600",
     color: colors.text,
-  },
-  meta: {
-    fontSize: 11,
-    fontWeight: "700",
-    marginLeft: spacing.sm,
-    textTransform: "uppercase",
+    letterSpacing: -0.1,
   },
 });

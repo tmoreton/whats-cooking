@@ -6,6 +6,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import IngredientChip from "@/components/IngredientChip";
@@ -112,7 +113,9 @@ export default function ResultsScreen() {
   if (phase === "error" || !result) {
     return (
       <View style={[styles.centered, { padding: spacing.xl }]}>
-        <Text style={styles.errorEmoji}>🔍</Text>
+        <View style={styles.errorIconWrap}>
+          <Ionicons name="search-outline" size={36} color={colors.primary} />
+        </View>
         <Text style={styles.errorTitle}>{errorText}</Text>
         <Pressable
           onPress={runAnalysis}
@@ -152,8 +155,9 @@ export default function ResultsScreen() {
     >
       {usedCache ? (
         <View style={styles.cacheBanner}>
+          <Ionicons name="cloud-offline-outline" size={14} color={colors.textSecondary} />
           <Text style={styles.cacheBannerText}>
-            📴 Offline — showing your last saved result.
+            Offline — showing your last saved result.
           </Text>
         </View>
       ) : null}
@@ -167,7 +171,12 @@ export default function ResultsScreen() {
       {/* Identified ingredients */}
       {result.identified_ingredients.length > 0 ? (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>I spotted…</Text>
+          <View style={styles.sectionHead}>
+            <Text style={styles.sectionLabel}>Identified</Text>
+            <Text style={styles.sectionCount}>
+              {result.identified_ingredients.length}
+            </Text>
+          </View>
           <View style={styles.chipWrap}>
             {result.identified_ingredients.map((ing, idx) => (
               <IngredientChip
@@ -183,7 +192,10 @@ export default function ResultsScreen() {
       {/* Fun fact */}
       {result.fun_fact ? (
         <View style={styles.funFact}>
-          <Text style={styles.funFactLabel}>💡 Fun fact</Text>
+          <View style={styles.funFactHead}>
+            <Ionicons name="bulb-outline" size={14} color={colors.available} />
+            <Text style={styles.funFactLabel}>Fun fact</Text>
+          </View>
           <Text style={styles.funFactText}>{result.fun_fact}</Text>
         </View>
       ) : null}
@@ -191,10 +203,12 @@ export default function ResultsScreen() {
       {/* Recipes */}
       {result.recipes.length > 0 ? (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>
-            {result.recipes.length} recipe
-            {result.recipes.length === 1 ? "" : "s"} you can make
-          </Text>
+          <View style={styles.sectionHead}>
+            <Text style={styles.sectionLabel}>
+              You can make
+            </Text>
+            <Text style={styles.sectionCount}>{result.recipes.length}</Text>
+          </View>
           {result.recipes.map((recipe, idx) => (
             <RecipeCard key={`${recipe.title}-${idx}`} recipe={recipe} />
           ))}
@@ -207,10 +221,14 @@ export default function ResultsScreen() {
 
       <Pressable
         onPress={scanAgain}
-        style={styles.scanAgainButton}
+        style={({ pressed }) => [
+          styles.scanAgainButton,
+          pressed && { opacity: 0.92 },
+        ]}
         accessibilityRole="button"
       >
-        <Text style={styles.scanAgainText}>📸 Scan Again</Text>
+        <Ionicons name="camera-outline" size={18} color={colors.white} />
+        <Text style={styles.scanAgainText}>Scan again</Text>
       </Pressable>
     </ScrollView>
   );
@@ -231,11 +249,20 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   section: {
-    marginBottom: spacing.lg,
+    marginBottom: spacing.xl,
   },
-  sectionTitle: {
-    ...typography.heading,
+  sectionHead: {
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: spacing.md,
+    gap: spacing.sm,
+  },
+  sectionLabel: {
+    ...typography.label,
+  },
+  sectionCount: {
+    ...typography.label,
+    color: colors.primary,
   },
   chipWrap: {
     flexDirection: "row",
@@ -243,40 +270,47 @@ const styles = StyleSheet.create({
   },
   funFact: {
     backgroundColor: colors.availableLight,
-    borderRadius: radii.md,
+    borderRadius: radii.lg,
     padding: spacing.lg,
-    marginBottom: spacing.lg,
+    marginBottom: spacing.xl,
+  },
+  funFactHead: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: spacing.xs,
+    gap: 6,
   },
   funFactLabel: {
     ...typography.label,
     color: colors.available,
-    marginBottom: spacing.xs,
   },
   funFactText: {
     ...typography.body,
-    lineHeight: 21,
+    lineHeight: 22,
   },
   messageCard: {
-    backgroundColor: "#FFF3E0",
-    borderRadius: radii.md,
-    borderWidth: 1,
-    borderColor: colors.primaryLight,
+    backgroundColor: colors.primarySoft,
+    borderRadius: radii.lg,
     padding: spacing.lg,
-    marginBottom: spacing.lg,
+    marginBottom: spacing.xl,
   },
   messageText: {
     ...typography.subheading,
     color: colors.primaryDark,
   },
   cacheBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     backgroundColor: colors.card,
     borderRadius: radii.sm,
-    padding: spacing.md,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
     marginBottom: spacing.lg,
+    gap: 6,
   },
   cacheBannerText: {
     ...typography.caption,
-    textAlign: "center",
   },
   emptyRecipes: {
     ...typography.body,
@@ -285,20 +319,29 @@ const styles = StyleSheet.create({
     marginVertical: spacing.xl,
   },
   scanAgainButton: {
-    backgroundColor: colors.primary,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.text,
     borderRadius: radii.md,
     paddingVertical: spacing.lg,
-    alignItems: "center",
     marginTop: spacing.sm,
+    gap: spacing.sm,
   },
   scanAgainText: {
     color: colors.white,
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: "700",
+    letterSpacing: -0.1,
   },
-  errorEmoji: {
-    fontSize: 52,
-    marginBottom: spacing.md,
+  errorIconWrap: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: colors.primarySoft,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: spacing.lg,
   },
   errorTitle: {
     ...typography.heading,
