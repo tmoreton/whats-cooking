@@ -25,6 +25,56 @@ const API_URL =
   (__DEV__ ? "http://localhost:8080/invocations" : "");
 
 /**
+ * Cognito machine-to-machine (client_credentials) auth. The proxy's API Gateway
+ * route is protected by a Cognito JWT authorizer (per AWS/Isengard standards —
+ * no unauthenticated public endpoints), so we fetch a short-lived access token
+ * and send it as a Bearer token. No login screen: the app authenticates itself.
+ */
+const COGNITO_TOKEN_URL = process.env.EXPO_PUBLIC_COGNITO_TOKEN_URL ?? "";
+const COGNITO_CLIENT_ID = process.env.EXPO_PUBLIC_COGNITO_CLIENT_ID ?? "";
+const COGNITO_CLIENT_SECRET = process.env.EXPO_PUBLIC_COGNITO_CLIENT_SECRET ?? "";
+const COGNITO_SCOPE = process.env.EXPO_PUBLIC_COGNITO_SCOPE ?? "whatscooking/invoke";
+
+let cachedToken: { value: string; expiresAt: number } | null = null;
+
+/**
+ * Return a valid Cognito access token, fetching (and caching until ~1 min
+ * before expiry) via the OAuth2 client_credentials grant. Returns null when
+ * Cognito isn't configured (e.g. local `agentcore dev`), so callers can skip
+ * the Authorization header.
+ */
+async function getAccessToken(): Promise<string | null> {
+  if (!COGNITO_TOKEN_URL || !COGNITO_CLIENT_ID || !COGNITO_CLIENT_SECRET) {
+    return null;
+  }
+  const now = Date.now();
+  if (cachedToken && cachedToken.expiresAt > now) {
+    return cachedToken.value;
+  }
+
+  // btoa is available in React Native (Hermes) and Expo web.
+  const basic = btoa(`${COGNITO_CLIENT_ID}:${COGNITO_CLIENT_SECRET}`);
+  const body = `grant_type=client_credentials&scope=${encodeURIComponent(COGNITO_SCOPE)}`;
+  const res = await fetch(COGNITO_TOKEN_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Authorization: `Basic ${basic}`,
+    },
+    body,
+  });
+  if (!res.ok) {
+    throw new Error("Couldn't authenticate with the kitchen service. Please try again.");
+  }
+  const json = (await res.json()) as { access_token: string; expires_in: number };
+  cachedToken = {
+    value: json.access_token,
+    expiresAt: now + (json.expires_in - 60) * 1000,
+  };
+  return cachedToken.value;
+}
+
+/**
  * Flip to `true` to demo the app with no backend running — analyzeImage will
  * return MOCK_RESPONSE after a short delay instead of hitting the network.
  */
@@ -144,12 +194,18 @@ export async function analyzeImage(
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
   try {
+    const token = await getAccessToken();
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    };
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
     const response = await fetch(API_URL, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
+      headers,
       body: JSON.stringify({
         image: base64Image,
         preferences,

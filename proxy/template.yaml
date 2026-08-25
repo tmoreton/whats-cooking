@@ -1,0 +1,148 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Authenticated HTTP API + Lambda proxy for the "What's Cooking?" app. The proxy
+  SigV4-signs to the AgentCore runtime. The public route is protected by a
+  Cognito JWT authorizer (machine-to-machine client_credentials) so it meets the
+  AWS/Isengard "no unauthenticated public endpoint" standard.
+
+Parameters:
+  AgentRuntimeArn:
+    Type: String
+    Description: ARN of the deployed AgentCore runtime.
+    Default: arn:aws:bedrock-agentcore:us-east-1:253170388727:runtime/whats_cooking-iik9UNDwCW
+  AgentQualifier:
+    Type: String
+    Description: Runtime endpoint qualifier.
+    Default: DEFAULT
+
+Globals:
+  Function:
+    Runtime: python3.12
+    Architectures: [arm64]
+    MemorySize: 1024
+    # HTTP API caps integration timeout at 29s; vision calls observed at ~9-18s.
+    Timeout: 29
+
+Resources:
+  # ---- Auth: Cognito user pool for machine-to-machine (client_credentials) ----
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Sub '${AWS::StackName}-pool'
+      # Cognito encrypts user pool data at rest by default.
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: true  # no self sign-up; M2M only
+
+  UserPoolResourceServer:
+    Type: AWS::Cognito::UserPoolResourceServer
+    Properties:
+      UserPoolId: !Ref UserPool
+      Identifier: whatscooking
+      Name: whatscooking
+      Scopes:
+        - ScopeName: invoke
+          ScopeDescription: Invoke the recipe proxy
+
+  UserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      # Domain prefix must be globally unique within the region.
+      Domain: !Sub 'whats-cooking-${AWS::AccountId}'
+      UserPoolId: !Ref UserPool
+
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    DependsOn: UserPoolResourceServer
+    Properties:
+      ClientName: !Sub '${AWS::StackName}-m2m-client'
+      UserPoolId: !Ref UserPool
+      GenerateSecret: true
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthFlows: [client_credentials]
+      AllowedOAuthScopes:
+        - whatscooking/invoke
+      SupportedIdentityProviders: [COGNITO]
+      # Short-lived access tokens.
+      AccessTokenValidity: 1
+      TokenValidityUnits:
+        AccessToken: hours
+
+  # ---- API ----
+  ApiAccessLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/http-api/${AWS::StackName}-access'
+      RetentionInDays: 14
+
+  ProxyApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowOrigins: ['*']
+        AllowHeaders: ['content-type', 'authorization']
+        AllowMethods: ['POST', 'OPTIONS']
+      Auth:
+        Authorizers:
+          CognitoJwtAuthorizer:
+            IdentitySource: '$request.header.Authorization'
+            JwtConfiguration:
+              issuer: !Sub 'https://cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}'
+              audience:
+                - !Ref UserPoolClient
+        DefaultAuthorizer: CognitoJwtAuthorizer
+      AccessLogSettings:
+        DestinationArn: !GetAtt ApiAccessLogs.Arn
+        Format: '{"requestId":"$context.requestId","ip":"$context.identity.sourceIp","routeKey":"$context.routeKey","status":"$context.status","protocol":"$context.protocol","responseLatency":"$context.responseLatency","authError":"$context.authorizer.error"}'
+
+  # ---- Lambda proxy ----
+  RecipeProxyFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${AWS::StackName}-recipe-proxy'
+      CodeUri: src/
+      Handler: app.handler
+      Environment:
+        Variables:
+          AGENT_RUNTIME_ARN: !Ref AgentRuntimeArn
+          AGENT_QUALIFIER: !Ref AgentQualifier
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action: bedrock-agentcore:InvokeAgentRuntime
+              Resource:
+                - !Ref AgentRuntimeArn
+                - !Sub '${AgentRuntimeArn}/*'
+      Events:
+        Invoke:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref ProxyApi
+            Path: /invocations
+            Method: POST
+            Auth:
+              Authorizer: CognitoJwtAuthorizer
+              AuthorizationScopes:
+                - whatscooking/invoke
+
+  RecipeProxyLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${AWS::StackName}-recipe-proxy'
+      RetentionInDays: 14
+
+Outputs:
+  ApiUrl:
+    Description: EXPO_PUBLIC_API_URL
+    Value: !Sub 'https://${ProxyApi}.execute-api.${AWS::Region}.amazonaws.com/invocations'
+  CognitoTokenUrl:
+    Description: EXPO_PUBLIC_COGNITO_TOKEN_URL
+    Value: !Sub 'https://whats-cooking-${AWS::AccountId}.auth.${AWS::Region}.amazoncognito.com/oauth2/token'
+  CognitoClientId:
+    Description: EXPO_PUBLIC_COGNITO_CLIENT_ID
+    Value: !Ref UserPoolClient
+  CognitoScope:
+    Description: EXPO_PUBLIC_COGNITO_SCOPE
+    Value: whatscooking/invoke
+  UserPoolId:
+    Value: !Ref UserPool

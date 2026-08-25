@@ -1,0 +1,2 @@
+# Bundle a recent boto3 so the Lambda runtime has the bedrock-agentcore client.
+boto3>=1.40.0

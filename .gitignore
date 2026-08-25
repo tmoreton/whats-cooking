@@ -18,6 +18,9 @@ backend/.venv/
 backend/build/
 backend/.bedrock_agentcore/
 
+# ---- SAM proxy build artifacts ----
+proxy/.aws-sam/
+
 # ---- Logs / misc ----
 *.log
 .DS_Store

@@ -1,0 +1,16 @@
+version = 0.1
+
+[default.global.parameters]
+stack_name = "whats-cooking-proxy"
+
+[default.build.parameters]
+use_container = true
+
+[default.deploy.parameters]
+stack_name = "whats-cooking-proxy"
+region = "us-east-1"
+resolve_s3 = true
+capabilities = "CAPABILITY_IAM"
+confirm_changeset = false
+fail_on_empty_changeset = false
+tags = "project=whats-cooking owner=tmoreton environment=isengard-dev managed-by=sam"
