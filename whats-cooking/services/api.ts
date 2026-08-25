@@ -173,14 +173,15 @@ export const MOCK_RESPONSE: RecipeResponse = {
 };
 
 /**
- * Analyze a fridge photo and return recipe suggestions.
+ * Analyze one or more fridge/pantry/spice-cabinet photos and return recipe
+ * suggestions.
  *
- * @param base64Image Base64-encoded PNG (no `data:` prefix).
+ * @param base64Images Base64-encoded PNGs (no `data:` prefix), one per photo.
  * @param preferences Dietary preferences to honor.
  * @param mode "normal" or "surprise".
  */
 export async function analyzeImage(
-  base64Image: string,
+  base64Images: string[],
   preferences: DietaryPreferences,
   mode: ScanMode
 ): Promise<RecipeResponse> {
@@ -207,7 +208,7 @@ export async function analyzeImage(
       method: "POST",
       headers,
       body: JSON.stringify({
-        image: base64Image,
+        images: base64Images,
         preferences,
         mode,
       }),

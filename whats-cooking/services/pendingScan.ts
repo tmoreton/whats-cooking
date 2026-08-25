@@ -1,28 +1,31 @@
 /**
- * Tiny in-memory singleton used to hand a captured photo's base64 payload from
+ * Tiny in-memory singleton used to hand captured photos' base64 payloads from
  * the camera screen to the results screen.
  *
- * Router params can't safely carry a large base64 string (they get serialized
- * into the URL/state), so we stash it here instead and read it once on the
+ * Router params can't safely carry large base64 strings (they get serialized
+ * into the URL/state), so we stash them here instead and read them once on the
  * results screen. This keeps navigation snappy and avoids URL-length limits.
+ *
+ * A scan can include several photos (e.g. the fridge plus the spice cabinet),
+ * so this holds an array.
  */
 
-let pendingBase64: string | null = null;
+let pendingImages: string[] = [];
 
-export function setPendingScan(base64Image: string): void {
-  pendingBase64 = base64Image;
+export function setPendingScan(base64Images: string[]): void {
+  pendingImages = base64Images;
 }
 
-export function consumePendingScan(): string | null {
-  const value = pendingBase64;
-  pendingBase64 = null;
+export function consumePendingScan(): string[] {
+  const value = pendingImages;
+  pendingImages = [];
   return value;
 }
 
-export function peekPendingScan(): string | null {
-  return pendingBase64;
+export function peekPendingScan(): string[] {
+  return pendingImages;
 }
 
 export function clearPendingScan(): void {
-  pendingBase64 = null;
+  pendingImages = [];
 }

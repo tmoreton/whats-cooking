@@ -1,0 +1,67 @@
+name: iOS TestFlight
+
+# Produces an iOS build on Expo's EAS servers and auto-submits it to
+# App Store Connect / TestFlight. No macOS runner is required because the
+# actual native build runs remotely on EAS.
+
+on:
+  # Manual run from the Actions tab.
+  workflow_dispatch:
+  # Any pushed tag like v1.0.0, v1.2.3, etc.
+  push:
+    tags:
+      - "v*"
+
+# App source lives in the whats-cooking/ subfolder, not the repo root.
+defaults:
+  run:
+    working-directory: whats-cooking
+
+jobs:
+  build-and-submit:
+    name: EAS build + TestFlight submit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: whats-cooking/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      # DEFAULT PATH (recommended): the App Store Connect API key is stored in
+      # EAS (uploaded once via `eas credentials`). Only EXPO_TOKEN is needed as
+      # a GitHub secret. `--auto-submit` uses the eas.json production submit
+      # profile; EAS supplies the stored ASC key automatically.
+      - name: Build & submit to TestFlight
+        run: eas build --platform ios --profile production --non-interactive --auto-submit
+
+      # ---------------------------------------------------------------------
+      # ALTERNATIVE PATH (ASC key supplied via GitHub secrets instead of EAS).
+      # If you prefer NOT to store the ASC API key in EAS, delete the step
+      # above and use the two steps below instead. This requires the extra
+      # secrets ASC_API_KEY_P8 (base64 of the .p8), ASC_API_KEY_ID and
+      # ASC_API_KEY_ISSUER_ID. The eas.json submit.production.ios block already
+      # references ./asc-api-key.p8 plus the two env vars.
+      #
+      # - name: Write ASC API key
+      #   run: echo "${{ secrets.ASC_API_KEY_P8 }}" | base64 --decode > asc-api-key.p8
+      #
+      # - name: Build & submit to TestFlight (secrets path)
+      #   env:
+      #     ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+      #     ASC_API_KEY_ISSUER_ID: ${{ secrets.ASC_API_KEY_ISSUER_ID }}
+      #   run: eas build --platform ios --profile production --non-interactive --auto-submit
+      # ---------------------------------------------------------------------

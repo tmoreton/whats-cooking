@@ -44,8 +44,8 @@ def handler(event, context):
     except (ValueError, TypeError):
         return _resp(400, {"message": "Body must be valid JSON: { image, preferences, mode }."})
 
-    if not isinstance(payload, dict) or not payload.get("image"):
-        return _resp(400, {"message": "Missing 'image' (base64 PNG) in the request body."})
+    if not isinstance(payload, dict) or not (payload.get("images") or payload.get("image")):
+        return _resp(400, {"message": "Missing 'images' (base64 PNGs) in the request body."})
 
     # AgentCore requires a runtimeSessionId of >= 33 chars. The agent is
     # stateless per request, so a fresh id per call is fine.

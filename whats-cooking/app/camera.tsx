@@ -17,12 +17,14 @@ import { colors, radii, spacing, typography } from "@/constants/theme";
 import { setPendingScan } from "@/services/pendingScan";
 
 const MAX_DIMENSION = 1024;
+const MAX_PHOTOS = 6;
 
 export default function CameraScreen() {
   const insets = useSafeAreaInsets();
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraView>(null);
   const [capturing, setCapturing] = useState(false);
+  const [shots, setShots] = useState<string[]>([]);
 
   // Permissions still loading.
   if (!permission) {
@@ -66,7 +68,7 @@ export default function CameraScreen() {
   }
 
   const handleSnap = async () => {
-    if (!cameraRef.current || capturing) return;
+    if (!cameraRef.current || capturing || shots.length >= MAX_PHOTOS) return;
     setCapturing(true);
     try {
       const photo = await cameraRef.current.takePictureAsync({
@@ -92,13 +94,22 @@ export default function CameraScreen() {
         throw new Error("Failed to encode image");
       }
 
-      // Stash the base64 payload in the in-memory singleton (router params
-      // can't safely carry a large base64 string), then navigate to results.
-      setPendingScan(manipulated.base64);
-      router.replace("/results");
+      // Add this shot to the collection; the user can keep snapping (fridge,
+      // pantry, spice cabinet…) and tap Done when finished.
+      setShots((prev) => [...prev, manipulated.base64 as string]);
     } catch {
+      // Swallow the error; the shutter stays available to retry.
+    } finally {
       setCapturing(false);
     }
+  };
+
+  const handleDone = () => {
+    if (shots.length === 0) return;
+    // Stash all captured photos in the in-memory singleton (router params
+    // can't safely carry large base64 strings), then navigate to results.
+    setPendingScan(shots);
+    router.replace("/results");
   };
 
   return (
@@ -109,7 +120,11 @@ export default function CameraScreen() {
       <View style={[styles.topOverlay, { paddingTop: insets.top + spacing.md }]}>
         <View style={styles.tipPill}>
           <Text style={styles.tipText}>
-            Point at your open fridge or pantry shelf
+            {shots.length === 0
+              ? "Snap your fridge — add your pantry or spice rack too!"
+              : shots.length >= MAX_PHOTOS
+              ? `Max ${MAX_PHOTOS} photos — tap Done`
+              : `${shots.length} photo${shots.length > 1 ? "s" : ""} added — snap more or tap Done`}
           </Text>
         </View>
       </View>
@@ -131,7 +146,7 @@ export default function CameraScreen() {
 
         <Pressable
           onPress={handleSnap}
-          disabled={capturing}
+          disabled={capturing || shots.length >= MAX_PHOTOS}
           style={styles.shutterOuter}
           accessibilityRole="button"
           accessibilityLabel="Take photo"
@@ -145,8 +160,22 @@ export default function CameraScreen() {
           </View>
         </Pressable>
 
-        {/* Spacer to balance the cancel button so the shutter stays centered. */}
-        <View style={styles.cancelButton} />
+        {shots.length > 0 ? (
+          <Pressable
+            onPress={handleDone}
+            style={styles.doneButton}
+            accessibilityRole="button"
+            accessibilityLabel={`Done, ${shots.length} photos`}
+          >
+            <Text style={styles.doneText}>Done</Text>
+            <View style={styles.countBadge}>
+              <Text style={styles.countBadgeText}>{shots.length}</Text>
+            </View>
+          </Pressable>
+        ) : (
+          // Spacer to balance the cancel button so the shutter stays centered.
+          <View style={styles.cancelButton} />
+        )}
       </View>
     </View>
   );
@@ -212,6 +241,32 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontSize: 16,
     fontWeight: "600",
+  },
+  doneButton: {
+    width: 72,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  doneText: {
+    color: colors.primary,
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  countBadge: {
+    marginLeft: spacing.xs,
+    minWidth: 22,
+    height: 22,
+    borderRadius: 11,
+    paddingHorizontal: 6,
+    backgroundColor: colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  countBadgeText: {
+    color: colors.white,
+    fontSize: 12,
+    fontWeight: "800",
   },
   shutterOuter: {
     width: 82,

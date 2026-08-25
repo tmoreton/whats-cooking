@@ -19,7 +19,9 @@ from strands import Agent
 from strands.models import BedrockModel
 
 from models import RecipeResponse
-from recipe_tools import search_recipes
+
+# Cap the number of images per request to keep payloads and latency sane.
+MAX_IMAGES = 6
 
 logger = logging.getLogger("whats-cooking")
 logging.basicConfig(level=logging.INFO)
@@ -41,7 +43,6 @@ _model = BedrockModel(
 _agent = Agent(
     model=_model,
     system_prompt=_SYSTEM_PROMPT,
-    tools=[search_recipes],
 )
 
 app = BedrockAgentCoreApp()
@@ -76,7 +77,6 @@ def invoke(payload: dict) -> dict:
     payload = payload or {}
 
     # 1. Defensively read fields.
-    image_b64 = payload.get("image")
     preferences = payload.get("preferences") or {}
     mode = payload.get("mode") or "normal"
     if mode not in ("normal", "surprise"):
@@ -86,25 +86,32 @@ def invoke(payload: dict) -> dict:
     vegan = bool(preferences.get("vegan", False))
     gluten_free = bool(preferences.get("glutenFree", False))
 
-    if not image_b64 or not isinstance(image_b64, str):
+    # Accept a list of images ("images") or a single legacy "image".
+    raw_images = payload.get("images")
+    if raw_images is None and payload.get("image"):
+        raw_images = [payload["image"]]
+    if not isinstance(raw_images, list) or not raw_images:
         return _empty_response(
             "I couldn't find a photo to look at! Snap a well-lit picture of your "
-            "open fridge or pantry and I'll whip up some ideas."
+            "open fridge, pantry, or spice cabinet and I'll whip up some ideas."
         )
 
-    # 2. Decode the base64 image into bytes for the Converse multimodal block.
-    try:
-        image_bytes = base64.b64decode(image_b64, validate=True)
-    except (binascii.Error, ValueError):
+    # 2. Decode each base64 image into bytes for the Converse multimodal blocks.
+    image_blocks = []
+    for item in raw_images[:MAX_IMAGES]:
+        if not isinstance(item, str) or not item:
+            continue
+        try:
+            data = base64.b64decode(item, validate=True)
+        except (binascii.Error, ValueError):
+            continue
+        if data:
+            image_blocks.append({"image": {"format": "png", "source": {"bytes": data}}})
+
+    if not image_blocks:
         return _empty_response(
-            "That image didn't decode cleanly. Please send a base64-encoded PNG "
+            "Those photos didn't decode cleanly. Please send base64-encoded PNGs "
             "(no data: prefix) and I'll take another look."
-        )
-
-    if not image_bytes:
-        return _empty_response(
-            "The photo came through empty. Try snapping a clear, well-lit shot of "
-            "your fridge and I'll get cooking!"
         )
 
     # 3. Build the multimodal user message: image block + instruction text block.
@@ -125,22 +132,20 @@ def invoke(payload: dict) -> dict:
     )
 
     instruction = (
-        "Here is a photo of my fridge/pantry. Identify every ingredient you can see "
-        "(with a high/medium/low confidence for each), then use the search_recipes tool "
-        "with those ingredients and suggest 3 recipes ranked by how few extra ingredients "
-        "I'd need to buy. For each recipe mark which ingredients are already visible in the "
-        "photo (available) versus need-to-buy, and make sure missing_count exactly equals "
-        "the number of unavailable ingredients.\n\n"
+        f"Here {'are' if len(image_blocks) > 1 else 'is'} {len(image_blocks)} "
+        f"photo{'s' if len(image_blocks) > 1 else ''} of my fridge/pantry/spice cabinet. "
+        "Identify every ingredient you can see across all of them "
+        "(with a high/medium/low confidence for each), then invent 3 recipes ranked by how "
+        "few extra ingredients I'd need to buy. For each recipe mark which ingredients are "
+        "already visible in the photos (available) versus need-to-buy, and make sure "
+        "missing_count exactly equals the number of unavailable ingredients.\n\n"
         f"Dietary preferences:\n{prefs_text}\n\n"
         f"{mode_text}\n\n"
         "If you can barely see anything, say so kindly in the message. If the fridge is "
         "essentially empty, return a funny takeout-humor message and an empty recipes list."
     )
 
-    content = [
-        {"image": {"format": "png", "source": {"bytes": image_bytes}}},
-        {"text": instruction},
-    ]
+    content = [*image_blocks, {"text": instruction}]
 
     # 4. Invoke the Strands agent with structured output so the return conforms
     #    to RecipeResponse, and return it as a plain dict.

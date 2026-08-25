@@ -9,13 +9,13 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.demo.whatscooking",
+      "bundleIdentifier": "com.tmoreton.whatscooking",
       "infoPlist": {
         "NSCameraUsageDescription": "What's Cooking? needs access to your camera so you can snap a photo of your fridge and get recipe suggestions."
       }
     },
     "android": {
-      "package": "com.demo.whatscooking",
+      "package": "com.tmoreton.whatscooking",
       "permissions": ["CAMERA"]
     },
     "web": {
@@ -33,6 +33,11 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "REPLACE_WITH_EAS_PROJECT_ID"
+      }
     }
   }
 }

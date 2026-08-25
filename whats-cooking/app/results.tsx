@@ -53,9 +53,9 @@ export default function ResultsScreen() {
       // Fall through to a fresh analysis if the cache entry vanished.
     }
 
-    const base64 = consumePendingScan();
-    if (!base64) {
-      // No photo to analyze (e.g. deep-linked directly). Try last result.
+    const images = consumePendingScan();
+    if (images.length === 0) {
+      // No photos to analyze (e.g. deep-linked directly). Try last result.
       const last = await loadLastResult();
       if (last) {
         setResult(last);
@@ -72,7 +72,7 @@ export default function ResultsScreen() {
 
     try {
       const [prefs, mode] = await Promise.all([loadPreferences(), loadMode()]);
-      const response = await analyzeImage(base64, prefs, mode);
+      const response = await analyzeImage(images, prefs, mode);
       setResult(response);
       setPhase("success");
       // Cache as a recent scan (also stores as last-result for offline use).

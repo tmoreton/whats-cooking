@@ -39,7 +39,7 @@ This serves the agent at `http://localhost:8080` (health on `/ping`, invocation 
 curl -X POST http://localhost:8080/invocations \
   -H "Content-Type: application/json" \
   -d '{
-        "image": "<base64-encoded PNG, no data: prefix>",
+        "images": ["<base64-encoded PNG, no data: prefix>", "<optional second photo>"],
         "preferences": {"vegetarian": false, "vegan": false, "glutenFree": false},
         "mode": "normal"
       }'
@@ -48,13 +48,13 @@ curl -X POST http://localhost:8080/invocations \
 ## Deploy to production
 
 ```bash
-agentcore configure --entrypoint main.py   # first time only
-agentcore launch
+agentcore configure -e main.py -n whats_cooking -dt direct_code_deploy -p HTTP -r us-east-1   # first time only
+agentcore deploy
 ```
 
-`agentcore launch` builds an ARM64 container, pushes it to ECR, and creates/updates the
-AgentCore Runtime + endpoint. Invoke the deployed agent with `agentcore invoke '<json-payload>'`
-or via the `bedrock-agentcore` data-plane API.
+`agentcore deploy` (formerly `launch`) packages the code and creates/updates the AgentCore
+Runtime + endpoint. Invoke the deployed agent with `agentcore invoke '<json-payload>'` or via
+the `bedrock-agentcore` data-plane API (`invoke_agent_runtime`).
 
 ## Endpoint contract
 
@@ -62,13 +62,13 @@ or via the `bedrock-agentcore` data-plane API.
 
 ```json
 {
-  "image": "<base64-encoded PNG string, NO data: prefix>",
+  "images": ["<base64-encoded PNG, NO data: prefix>", "..."],
   "preferences": { "vegetarian": false, "vegan": false, "glutenFree": false },
   "mode": "normal"
 }
 ```
 
-- `image` — required. Base64 PNG, no `data:` prefix.
+- `images` — required. Array of base64 PNGs (no `data:` prefix), up to 6 — e.g. a fridge shot plus a spice-cabinet shot. A single legacy `"image"` string is also accepted.
 - `preferences` — optional; any subset of `vegetarian`, `vegan`, `glutenFree` (defaults to `false`).
 - `mode` — `"normal"` (practical picks) or `"surprise"` (most creative dish first). Defaults to `"normal"`.
 
