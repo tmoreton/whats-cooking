@@ -23,6 +23,10 @@ Globals:
     MemorySize: 1024
     # HTTP API caps integration timeout at 29s; vision calls observed at ~9-18s.
     Timeout: 29
+    Tracing: Active
+    Environment:
+      Variables:
+        POWERTOOLS_LOG_LEVEL: INFO
 
 Resources:
   # ---- Auth: Cognito user pool for machine-to-machine (client_credentials) ----

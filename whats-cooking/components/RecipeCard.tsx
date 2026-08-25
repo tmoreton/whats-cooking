@@ -34,17 +34,17 @@ interface Props {
 
 function buildShareText(recipe: Recipe): string {
   const ingredientLines = recipe.ingredients
-    .map((i) => `${i.available ? "✓" : "🛒"} ${i.name}`)
+    .map((i) => `${i.available ? "[x]" : "[ ]"} ${i.name}`)
     .join("\n");
   const stepLines = recipe.steps
     .map((s, idx) => `${idx + 1}. ${s}`)
     .join("\n");
   return (
-    `🍳 ${recipe.title}\n` +
-    `⏱ ${recipe.time_minutes} min · ${recipe.difficulty}\n\n` +
-    `Ingredients:\n${ingredientLines}\n\n` +
-    `Steps:\n${stepLines}\n\n` +
-    `Shared from What's Cooking?`
+    `${recipe.title}\n` +
+    `${recipe.time_minutes} min · ${recipe.difficulty}\n\n` +
+    `Ingredients\n${ingredientLines}\n\n` +
+    `Steps\n${stepLines}\n\n` +
+    `— Shared from What's Cooking?`
   );
 }
 

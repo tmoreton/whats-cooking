@@ -11,10 +11,8 @@ vision model, and returns recipe suggestions tailored to your dietary preference
   structured output.
 - `models.py` — the shared Pydantic data contract (`RecipeResponse` and friends). The frontend
   depends on these shapes exactly.
-- `system_prompt.txt` — the agent's system prompt.
-- `recipe_tools.py` — a Strands `@tool` (`search_recipes`) that ranks a curated recipe DB by
-  ingredient overlap.
-- `recipes.json` — ~50 curated real home-cooking recipes.
+- `system_prompt.txt` — the agent's system prompt. Recipes are invented by the model directly
+  from the photos; there is no curated recipe database or tool.
 
 Model: `us.anthropic.claude-sonnet-4-20250514-v1:0` (cross-region inference profile).
 

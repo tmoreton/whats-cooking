@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Animated, Easing, StyleSheet, Text, View } from "react-native";
-import { colors, spacing, typography } from "@/constants/theme";
+import { colors, radii, spacing, typography } from "@/constants/theme";
 
 const MESSAGES = [
   "Peeking inside your fridge…",
@@ -9,16 +9,14 @@ const MESSAGES = [
   "Plating your options…",
 ];
 
-/**
- * Pure React Native Animated cooking animation — no external Lottie asset
- * required. A pot rocks gently while three "ingredients" bob up and down above
- * it, and steam drifts upward. The caption rotates through a few playful lines
- * so long waits feel lively. Everything is driven by looping Animated values.
- */
+// Vector-only cooking indicator — no emojis. A soft bowl with a rim rocks
+// gently while three brand-colored dots bob above it. Everything is drawn
+// with Views + Animated so the theme stays consistent with the icon system.
+const DOT_COLORS = [colors.primary, colors.available, "#F5A623"];
+
 export default function LoadingAnimation() {
   const rock = useRef(new Animated.Value(0)).current;
   const bob = useRef(new Animated.Value(0)).current;
-  const steam = useRef(new Animated.Value(0)).current;
   const [msgIdx, setMsgIdx] = useState(0);
 
   useEffect(() => {
@@ -70,91 +68,57 @@ export default function LoadingAnimation() {
       ])
     );
 
-    const steamLoop = Animated.loop(
-      Animated.timing(steam, {
-        toValue: 1,
-        duration: 1800,
-        easing: Easing.out(Easing.ease),
-        useNativeDriver: true,
-      })
-    );
-
     rockLoop.start();
     bobLoop.start();
-    steamLoop.start();
-
     return () => {
       rockLoop.stop();
       bobLoop.stop();
-      steamLoop.stop();
     };
-  }, [rock, bob, steam]);
+  }, [rock, bob]);
 
   const rockRotate = rock.interpolate({
     inputRange: [-1, 1],
-    outputRange: ["-8deg", "8deg"],
+    outputRange: ["-6deg", "6deg"],
   });
-
-  const steamTranslate = steam.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, -28],
-  });
-  const steamOpacity = steam.interpolate({
-    inputRange: [0, 0.2, 0.8, 1],
-    outputRange: [0, 0.7, 0.4, 0],
-  });
-
-  const ingredients = ["🍅", "🥕", "🧅"];
 
   return (
     <View style={styles.container}>
       <View style={styles.stage}>
-        {/* Floating ingredients */}
-        <View style={styles.ingredientRow}>
-          {ingredients.map((emoji, idx) => {
+        {/* Floating "ingredients" — brand-colored dots */}
+        <View style={styles.dotRow}>
+          {DOT_COLORS.map((color, idx) => {
             const translateY = bob.interpolate({
               inputRange: [0, 1],
-              outputRange: [0, idx % 2 === 0 ? -14 : -22],
+              outputRange: [0, idx % 2 === 0 ? -18 : -26],
             });
             return (
-              <Animated.Text
-                key={emoji}
+              <Animated.View
+                key={color}
                 style={[
-                  styles.ingredient,
-                  { transform: [{ translateY }] },
+                  styles.dot,
+                  { backgroundColor: color, transform: [{ translateY }] },
                 ]}
-              >
-                {emoji}
-              </Animated.Text>
+              />
             );
           })}
         </View>
 
-        {/* Steam */}
-        <Animated.Text
-          style={[
-            styles.steam,
-            {
-              opacity: steamOpacity,
-              transform: [{ translateY: steamTranslate }],
-            },
-          ]}
+        {/* Bowl — orange body with a dark rim, rocks gently */}
+        <Animated.View
+          style={[styles.bowl, { transform: [{ rotate: rockRotate }] }]}
         >
-          ~ ~ ~
-        </Animated.Text>
-
-        {/* Pot */}
-        <Animated.Text
-          style={[styles.pot, { transform: [{ rotate: rockRotate }] }]}
-        >
-          🍲
-        </Animated.Text>
+          <View style={styles.bowlRim} />
+          <View style={styles.bowlBody} />
+        </Animated.View>
       </View>
 
       <Text style={styles.message}>{MESSAGES[msgIdx]}</Text>
     </View>
   );
 }
+
+const BOWL_W = 132;
+const BOWL_H = 80;
 
 const styles = StyleSheet.create({
   container: {
@@ -163,25 +127,39 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xxl,
   },
   stage: {
-    height: 180,
+    height: 170,
     alignItems: "center",
     justifyContent: "flex-end",
   },
-  ingredientRow: {
+  dotRow: {
     flexDirection: "row",
+    alignItems: "center",
     marginBottom: spacing.md,
+    gap: spacing.md,
   },
-  ingredient: {
-    fontSize: 32,
-    marginHorizontal: spacing.sm,
+  dot: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
   },
-  steam: {
-    fontSize: 20,
-    color: colors.textMuted,
-    marginBottom: spacing.xs,
+  bowl: {
+    width: BOWL_W,
+    height: BOWL_H + 12,
+    alignItems: "center",
   },
-  pot: {
-    fontSize: 72,
+  bowlRim: {
+    width: BOWL_W,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: colors.text,
+  },
+  bowlBody: {
+    width: BOWL_W - 8,
+    height: BOWL_H,
+    marginTop: -2,
+    borderBottomLeftRadius: radii.xl + 20,
+    borderBottomRightRadius: radii.xl + 20,
+    backgroundColor: colors.primary,
   },
   message: {
     ...typography.subheading,

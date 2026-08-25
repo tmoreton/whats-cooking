@@ -8,12 +8,20 @@ straight back to the client.
 
 import base64
 import json
+import logging
 import os
 import uuid
 
 import boto3
+from botocore.config import Config
 
-_client = boto3.client("bedrock-agentcore")
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
+# Adaptive retries + a modest per-call timeout make the proxy resilient to
+# transient Bedrock throttling and slow model calls without runaway retries.
+_boto_cfg = Config(retries={"max_attempts": 3, "mode": "adaptive"}, read_timeout=28)
+_client = boto3.client("bedrock-agentcore", config=_boto_cfg)
 _ARN = os.environ["AGENT_RUNTIME_ARN"]
 _QUALIFIER = os.environ.get("AGENT_QUALIFIER", "DEFAULT")
 
@@ -62,8 +70,8 @@ def handler(event, context):
             payload=json.dumps(payload).encode("utf-8"),
         )
         data = result["response"].read()
-    except Exception as exc:  # noqa: BLE001 - return a friendly error, log detail
-        print(f"invoke_agent_runtime failed: {exc!r}")
+    except Exception:  # noqa: BLE001 - return a friendly error, log detail
+        logger.exception("invoke_agent_runtime failed")
         return _resp(502, {"message": "The recipe service is unavailable right now. Please try again in a moment."})
 
     # The runtime already returns a RecipeResponse JSON; pass it straight through.
