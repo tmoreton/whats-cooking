@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "What's Cooking?",
+    "slug": "whats-cooking",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "whatscooking",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.demo.whatscooking",
+      "infoPlist": {
+        "NSCameraUsageDescription": "What's Cooking? needs access to your camera so you can snap a photo of your fridge and get recipe suggestions."
+      }
+    },
+    "android": {
+      "package": "com.demo.whatscooking",
+      "permissions": ["CAMERA"]
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "What's Cooking? needs access to your camera so you can snap a photo of your fridge and get recipe suggestions."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

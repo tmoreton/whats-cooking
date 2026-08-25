@@ -1,0 +1,655 @@
+[
+  {
+    "title": "Classic Scrambled Eggs on Toast",
+    "time_minutes": 10,
+    "difficulty": "easy",
+    "ingredients": ["eggs", "butter", "bread", "salt", "pepper", "milk"],
+    "steps": [
+      "Whisk the eggs with a splash of milk, salt, and pepper.",
+      "Melt butter in a nonstick pan over medium-low heat.",
+      "Pour in the eggs and stir gently and constantly until just set but still soft.",
+      "Toast the bread and butter it.",
+      "Spoon the eggs over the toast and serve immediately."
+    ]
+  },
+  {
+    "title": "Fluffy Buttermilk Pancakes",
+    "time_minutes": 25,
+    "difficulty": "easy",
+    "ingredients": ["flour", "eggs", "milk", "butter", "sugar", "baking powder", "salt"],
+    "steps": [
+      "Whisk flour, sugar, baking powder, and salt in a bowl.",
+      "In another bowl beat eggs with milk and melted butter.",
+      "Fold the wet into the dry until just combined; a few lumps are fine.",
+      "Cook ladles of batter on a buttered griddle until bubbles form, then flip.",
+      "Serve warm with syrup or fruit."
+    ]
+  },
+  {
+    "title": "Veggie Omelette",
+    "time_minutes": 15,
+    "difficulty": "easy",
+    "ingredients": ["eggs", "bell pepper", "onion", "cheese", "butter", "salt", "pepper"],
+    "steps": [
+      "Beat the eggs with salt and pepper.",
+      "Saute diced onion and bell pepper in butter until soft.",
+      "Pour eggs over the vegetables and cook until nearly set.",
+      "Sprinkle cheese over one half and fold the omelette over.",
+      "Slide onto a plate and serve."
+    ]
+  },
+  {
+    "title": "Avocado Toast with Egg",
+    "time_minutes": 12,
+    "difficulty": "easy",
+    "ingredients": ["bread", "avocado", "eggs", "lemon", "salt", "pepper", "chili flakes"],
+    "steps": [
+      "Toast the bread until golden.",
+      "Mash avocado with lemon juice, salt, and pepper.",
+      "Fry or poach an egg to your liking.",
+      "Spread avocado on the toast and top with the egg.",
+      "Finish with chili flakes and extra salt."
+    ]
+  },
+  {
+    "title": "Overnight Oats",
+    "time_minutes": 5,
+    "difficulty": "easy",
+    "ingredients": ["oats", "milk", "yogurt", "honey", "banana", "cinnamon"],
+    "steps": [
+      "Combine oats, milk, and yogurt in a jar.",
+      "Stir in honey and a pinch of cinnamon.",
+      "Cover and refrigerate overnight.",
+      "In the morning, top with sliced banana and enjoy cold."
+    ]
+  },
+  {
+    "title": "Spaghetti Aglio e Olio",
+    "time_minutes": 20,
+    "difficulty": "easy",
+    "ingredients": ["pasta", "garlic", "olive oil", "chili flakes", "parsley", "salt", "parmesan"],
+    "steps": [
+      "Cook spaghetti in salted boiling water until al dente.",
+      "Gently sizzle sliced garlic and chili flakes in olive oil until fragrant.",
+      "Toss the drained pasta in the oil with a splash of pasta water.",
+      "Stir through chopped parsley.",
+      "Serve with grated parmesan."
+    ]
+  },
+  {
+    "title": "Creamy Tomato Pasta",
+    "time_minutes": 25,
+    "difficulty": "easy",
+    "ingredients": ["pasta", "canned tomatoes", "garlic", "onion", "cream", "olive oil", "basil", "salt"],
+    "steps": [
+      "Cook pasta until al dente.",
+      "Saute onion and garlic in olive oil until soft.",
+      "Add canned tomatoes and simmer 10 minutes.",
+      "Stir in cream and season with salt.",
+      "Toss with the pasta and finish with torn basil."
+    ]
+  },
+  {
+    "title": "Spaghetti Carbonara",
+    "time_minutes": 25,
+    "difficulty": "medium",
+    "ingredients": ["pasta", "eggs", "bacon", "parmesan", "black pepper", "garlic", "salt"],
+    "steps": [
+      "Cook spaghetti in salted water until al dente.",
+      "Crisp chopped bacon with a smashed garlic clove.",
+      "Whisk eggs with grated parmesan and lots of black pepper.",
+      "Off the heat, toss hot pasta with the bacon, then the egg mixture, adding pasta water to make a silky sauce.",
+      "Serve immediately with extra parmesan."
+    ]
+  },
+  {
+    "title": "Pesto Pasta",
+    "time_minutes": 18,
+    "difficulty": "easy",
+    "ingredients": ["pasta", "basil", "garlic", "pine nuts", "parmesan", "olive oil", "salt"],
+    "steps": [
+      "Cook pasta until al dente.",
+      "Blend basil, garlic, pine nuts, parmesan, and olive oil into a pesto.",
+      "Toss the drained pasta with the pesto and a little pasta water.",
+      "Season with salt and serve."
+    ]
+  },
+  {
+    "title": "Mac and Cheese",
+    "time_minutes": 30,
+    "difficulty": "medium",
+    "ingredients": ["pasta", "cheese", "milk", "butter", "flour", "salt", "pepper"],
+    "steps": [
+      "Cook macaroni until al dente and drain.",
+      "Melt butter, whisk in flour, then slowly add milk to make a smooth sauce.",
+      "Stir in grated cheese until melted and season with salt and pepper.",
+      "Fold the pasta into the sauce.",
+      "Serve hot, or bake briefly for a crispy top."
+    ]
+  },
+  {
+    "title": "Chicken Stir-Fry",
+    "time_minutes": 25,
+    "difficulty": "medium",
+    "ingredients": ["chicken", "bell pepper", "broccoli", "garlic", "ginger", "soy sauce", "oil", "rice"],
+    "steps": [
+      "Cook rice according to package directions.",
+      "Slice chicken and stir-fry in hot oil until golden.",
+      "Add garlic, ginger, and chopped vegetables; stir-fry until crisp-tender.",
+      "Splash in soy sauce and toss to coat.",
+      "Serve over the rice."
+    ]
+  },
+  {
+    "title": "Vegetable Fried Rice",
+    "time_minutes": 20,
+    "difficulty": "easy",
+    "ingredients": ["rice", "eggs", "carrot", "peas", "onion", "soy sauce", "garlic", "oil"],
+    "steps": [
+      "Use cold, day-old rice for best results.",
+      "Scramble the eggs in oil and set aside.",
+      "Stir-fry onion, carrot, garlic, and peas until tender.",
+      "Add the rice and soy sauce, tossing over high heat.",
+      "Fold the eggs back in and serve."
+    ]
+  },
+  {
+    "title": "Tofu Vegetable Stir-Fry",
+    "time_minutes": 25,
+    "difficulty": "medium",
+    "ingredients": ["tofu", "broccoli", "bell pepper", "garlic", "ginger", "soy sauce", "sesame oil", "rice"],
+    "steps": [
+      "Press and cube the tofu, then pan-fry until golden.",
+      "Cook rice on the side.",
+      "Stir-fry garlic, ginger, and vegetables in sesame oil.",
+      "Return the tofu, add soy sauce, and toss to coat.",
+      "Serve over rice."
+    ]
+  },
+  {
+    "title": "Beef and Broccoli",
+    "time_minutes": 25,
+    "difficulty": "medium",
+    "ingredients": ["beef", "broccoli", "garlic", "ginger", "soy sauce", "cornstarch", "oil", "rice"],
+    "steps": [
+      "Slice beef thinly and toss with a little cornstarch and soy sauce.",
+      "Sear the beef in hot oil and set aside.",
+      "Stir-fry broccoli with garlic and ginger.",
+      "Return the beef, add soy sauce and a splash of water, and simmer until glossy.",
+      "Serve over rice."
+    ]
+  },
+  {
+    "title": "Chicken Fajitas",
+    "time_minutes": 30,
+    "difficulty": "medium",
+    "ingredients": ["chicken", "bell pepper", "onion", "tortillas", "cumin", "paprika", "lime", "oil"],
+    "steps": [
+      "Slice chicken, peppers, and onion.",
+      "Toss the chicken with cumin, paprika, and salt.",
+      "Sear the chicken in hot oil, then add the vegetables until charred and tender.",
+      "Squeeze over lime juice.",
+      "Serve in warm tortillas."
+    ]
+  },
+  {
+    "title": "Black Bean Tacos",
+    "time_minutes": 20,
+    "difficulty": "easy",
+    "ingredients": ["black beans", "tortillas", "onion", "garlic", "cumin", "cheese", "lime", "cilantro"],
+    "steps": [
+      "Saute onion and garlic until soft.",
+      "Add black beans and cumin; mash lightly and warm through.",
+      "Warm the tortillas.",
+      "Fill with beans, cheese, and cilantro.",
+      "Finish with a squeeze of lime."
+    ]
+  },
+  {
+    "title": "Fish Tacos",
+    "time_minutes": 25,
+    "difficulty": "medium",
+    "ingredients": ["fish", "tortillas", "cabbage", "lime", "mayo", "cumin", "paprika", "cilantro"],
+    "steps": [
+      "Season white fish with cumin, paprika, and salt.",
+      "Pan-fry the fish until it flakes easily.",
+      "Mix mayo with lime juice for a quick crema.",
+      "Warm the tortillas and shred the cabbage.",
+      "Assemble tacos with fish, cabbage, crema, and cilantro."
+    ]
+  },
+  {
+    "title": "Ground Beef Tacos",
+    "time_minutes": 20,
+    "difficulty": "easy",
+    "ingredients": ["ground beef", "tortillas", "onion", "garlic", "cumin", "paprika", "cheese", "lettuce"],
+    "steps": [
+      "Brown the ground beef with onion and garlic.",
+      "Stir in cumin, paprika, and salt with a splash of water.",
+      "Simmer until saucy.",
+      "Warm the tortillas.",
+      "Fill with beef, cheese, and shredded lettuce."
+    ]
+  },
+  {
+    "title": "Margherita Flatbread Pizza",
+    "time_minutes": 20,
+    "difficulty": "easy",
+    "ingredients": ["flatbread", "canned tomatoes", "mozzarella", "basil", "olive oil", "garlic", "salt"],
+    "steps": [
+      "Heat the oven as hot as it goes.",
+      "Spread crushed tomatoes seasoned with garlic and salt over the flatbread.",
+      "Top with torn mozzarella.",
+      "Bake until the cheese bubbles and the edges crisp.",
+      "Finish with fresh basil and a drizzle of olive oil."
+    ]
+  },
+  {
+    "title": "Greek Salad",
+    "time_minutes": 15,
+    "difficulty": "easy",
+    "ingredients": ["cucumber", "tomato", "red onion", "feta", "olives", "olive oil", "oregano", "lemon"],
+    "steps": [
+      "Chop cucumber, tomato, and red onion into chunks.",
+      "Add olives and cubed feta.",
+      "Dress with olive oil, lemon juice, and dried oregano.",
+      "Toss gently and season with salt."
+    ]
+  },
+  {
+    "title": "Caesar Salad",
+    "time_minutes": 15,
+    "difficulty": "easy",
+    "ingredients": ["romaine lettuce", "parmesan", "bread", "garlic", "mayo", "lemon", "mustard", "olive oil"],
+    "steps": [
+      "Toast cubed bread with olive oil and garlic to make croutons.",
+      "Whisk mayo, lemon juice, mustard, grated parmesan, and garlic into a dressing.",
+      "Toss chopped romaine with the dressing.",
+      "Top with croutons and extra parmesan."
+    ]
+  },
+  {
+    "title": "Caprese Salad",
+    "time_minutes": 10,
+    "difficulty": "easy",
+    "ingredients": ["tomato", "mozzarella", "basil", "olive oil", "balsamic vinegar", "salt", "pepper"],
+    "steps": [
+      "Slice tomatoes and fresh mozzarella.",
+      "Arrange alternating slices on a plate with basil leaves.",
+      "Drizzle with olive oil and balsamic vinegar.",
+      "Season with salt and pepper."
+    ]
+  },
+  {
+    "title": "Chickpea Salad",
+    "time_minutes": 15,
+    "difficulty": "easy",
+    "ingredients": ["chickpeas", "cucumber", "tomato", "red onion", "lemon", "olive oil", "parsley", "salt"],
+    "steps": [
+      "Drain and rinse the chickpeas.",
+      "Dice cucumber, tomato, and red onion.",
+      "Combine with chickpeas and chopped parsley.",
+      "Dress with lemon juice, olive oil, and salt."
+    ]
+  },
+  {
+    "title": "Tomato Soup",
+    "time_minutes": 30,
+    "difficulty": "easy",
+    "ingredients": ["canned tomatoes", "onion", "garlic", "vegetable stock", "cream", "olive oil", "basil", "salt"],
+    "steps": [
+      "Soften onion and garlic in olive oil.",
+      "Add canned tomatoes and vegetable stock, then simmer 15 minutes.",
+      "Blend until smooth.",
+      "Stir in a splash of cream and season with salt.",
+      "Garnish with basil."
+    ]
+  },
+  {
+    "title": "Lentil Soup",
+    "time_minutes": 40,
+    "difficulty": "easy",
+    "ingredients": ["lentils", "carrot", "onion", "celery", "garlic", "vegetable stock", "cumin", "olive oil"],
+    "steps": [
+      "Saute onion, carrot, celery, and garlic in olive oil.",
+      "Stir in cumin, then add lentils and vegetable stock.",
+      "Simmer 25-30 minutes until the lentils are tender.",
+      "Season with salt and blend partly for a thicker texture if desired."
+    ]
+  },
+  {
+    "title": "Chicken Noodle Soup",
+    "time_minutes": 40,
+    "difficulty": "medium",
+    "ingredients": ["chicken", "carrot", "celery", "onion", "garlic", "noodles", "chicken stock", "parsley"],
+    "steps": [
+      "Saute onion, carrot, celery, and garlic.",
+      "Add chicken and chicken stock; simmer until the chicken is cooked.",
+      "Shred the chicken and return it to the pot.",
+      "Add noodles and cook until tender.",
+      "Season with salt and finish with parsley."
+    ]
+  },
+  {
+    "title": "Miso Soup",
+    "time_minutes": 15,
+    "difficulty": "easy",
+    "ingredients": ["miso paste", "tofu", "green onion", "seaweed", "dashi", "soy sauce"],
+    "steps": [
+      "Heat dashi until warm but not boiling.",
+      "Whisk in miso paste until dissolved.",
+      "Add cubed tofu and rehydrated seaweed.",
+      "Warm gently and finish with sliced green onion."
+    ]
+  },
+  {
+    "title": "Minestrone Soup",
+    "time_minutes": 40,
+    "difficulty": "medium",
+    "ingredients": ["canned tomatoes", "beans", "pasta", "carrot", "celery", "onion", "vegetable stock", "zucchini"],
+    "steps": [
+      "Saute onion, carrot, and celery until soft.",
+      "Add canned tomatoes, beans, and vegetable stock.",
+      "Simmer 15 minutes, then add pasta and diced zucchini.",
+      "Cook until the pasta is tender and season with salt."
+    ]
+  },
+  {
+    "title": "Grilled Cheese Sandwich",
+    "time_minutes": 10,
+    "difficulty": "easy",
+    "ingredients": ["bread", "cheese", "butter"],
+    "steps": [
+      "Butter the outside of two slices of bread.",
+      "Layer cheese between them, buttered sides out.",
+      "Grill in a pan over medium heat until golden.",
+      "Flip and cook until the cheese melts.",
+      "Slice and serve hot."
+    ]
+  },
+  {
+    "title": "Quesadilla",
+    "time_minutes": 12,
+    "difficulty": "easy",
+    "ingredients": ["tortillas", "cheese", "bell pepper", "onion", "oil", "salsa"],
+    "steps": [
+      "Saute sliced pepper and onion until soft.",
+      "Lay a tortilla in a dry pan and cover half with cheese and the vegetables.",
+      "Fold over and cook until golden on both sides.",
+      "Cut into wedges and serve with salsa."
+    ]
+  },
+  {
+    "title": "Shakshuka",
+    "time_minutes": 30,
+    "difficulty": "medium",
+    "ingredients": ["eggs", "canned tomatoes", "bell pepper", "onion", "garlic", "cumin", "paprika", "olive oil"],
+    "steps": [
+      "Saute onion, pepper, and garlic in olive oil.",
+      "Add cumin and paprika, then the canned tomatoes.",
+      "Simmer until thickened and season with salt.",
+      "Make wells and crack in the eggs.",
+      "Cover and cook until the whites set but the yolks stay soft."
+    ]
+  },
+  {
+    "title": "French Toast",
+    "time_minutes": 15,
+    "difficulty": "easy",
+    "ingredients": ["bread", "eggs", "milk", "cinnamon", "butter", "sugar", "vanilla"],
+    "steps": [
+      "Whisk eggs, milk, cinnamon, sugar, and vanilla.",
+      "Soak bread slices briefly in the mixture.",
+      "Fry in butter until golden on both sides.",
+      "Serve with syrup or fruit."
+    ]
+  },
+  {
+    "title": "Banana Smoothie",
+    "time_minutes": 5,
+    "difficulty": "easy",
+    "ingredients": ["banana", "milk", "yogurt", "honey", "ice"],
+    "steps": [
+      "Add banana, milk, yogurt, honey, and ice to a blender.",
+      "Blend until smooth.",
+      "Pour into a glass and serve cold."
+    ]
+  },
+  {
+    "title": "Fruit Yogurt Parfait",
+    "time_minutes": 8,
+    "difficulty": "easy",
+    "ingredients": ["yogurt", "granola", "berries", "honey", "banana"],
+    "steps": [
+      "Spoon a layer of yogurt into a glass.",
+      "Add a layer of granola and fruit.",
+      "Repeat the layers.",
+      "Drizzle with honey and serve."
+    ]
+  },
+  {
+    "title": "Baked Salmon with Vegetables",
+    "time_minutes": 30,
+    "difficulty": "medium",
+    "ingredients": ["salmon", "broccoli", "potato", "lemon", "olive oil", "garlic", "salt", "pepper"],
+    "steps": [
+      "Toss chopped potato and broccoli with olive oil, garlic, salt, and pepper.",
+      "Roast the vegetables until they begin to soften.",
+      "Add salmon fillets and lemon slices to the tray.",
+      "Bake until the salmon flakes easily.",
+      "Serve with the roasted vegetables."
+    ]
+  },
+  {
+    "title": "Roast Chicken Thighs with Potatoes",
+    "time_minutes": 45,
+    "difficulty": "medium",
+    "ingredients": ["chicken thighs", "potato", "garlic", "rosemary", "olive oil", "lemon", "salt", "pepper"],
+    "steps": [
+      "Toss potatoes and garlic with olive oil, rosemary, salt, and pepper.",
+      "Nestle chicken thighs on top and squeeze over lemon.",
+      "Roast until the chicken skin is crisp and the potatoes are tender.",
+      "Rest briefly and serve."
+    ]
+  },
+  {
+    "title": "Beef Chili",
+    "time_minutes": 45,
+    "difficulty": "medium",
+    "ingredients": ["ground beef", "beans", "canned tomatoes", "onion", "garlic", "cumin", "chili powder", "bell pepper"],
+    "steps": [
+      "Brown the ground beef with onion, garlic, and pepper.",
+      "Stir in cumin and chili powder.",
+      "Add canned tomatoes and beans.",
+      "Simmer 30 minutes until thick.",
+      "Season with salt and serve."
+    ]
+  },
+  {
+    "title": "Vegetable Curry",
+    "time_minutes": 35,
+    "difficulty": "medium",
+    "ingredients": ["potato", "cauliflower", "peas", "onion", "garlic", "ginger", "curry powder", "coconut milk", "rice"],
+    "steps": [
+      "Saute onion, garlic, and ginger.",
+      "Stir in curry powder until fragrant.",
+      "Add potato, cauliflower, and coconut milk; simmer until tender.",
+      "Add peas at the end.",
+      "Serve over rice."
+    ]
+  },
+  {
+    "title": "Chicken Curry",
+    "time_minutes": 40,
+    "difficulty": "medium",
+    "ingredients": ["chicken", "onion", "garlic", "ginger", "curry powder", "canned tomatoes", "coconut milk", "rice"],
+    "steps": [
+      "Brown the chicken pieces and set aside.",
+      "Saute onion, garlic, and ginger, then add curry powder.",
+      "Add canned tomatoes and coconut milk.",
+      "Return the chicken and simmer until cooked through.",
+      "Serve over rice."
+    ]
+  },
+  {
+    "title": "Fried Egg Rice Bowl",
+    "time_minutes": 15,
+    "difficulty": "easy",
+    "ingredients": ["rice", "eggs", "soy sauce", "green onion", "sesame oil", "oil"],
+    "steps": [
+      "Warm cooked rice in a bowl.",
+      "Fry eggs in oil until the edges are crispy.",
+      "Place the eggs over the rice.",
+      "Drizzle with soy sauce and sesame oil.",
+      "Top with sliced green onion."
+    ]
+  },
+  {
+    "title": "Hummus and Veggie Wrap",
+    "time_minutes": 10,
+    "difficulty": "easy",
+    "ingredients": ["tortillas", "hummus", "cucumber", "tomato", "lettuce", "carrot", "lemon"],
+    "steps": [
+      "Spread hummus over a tortilla.",
+      "Layer sliced cucumber, tomato, carrot, and lettuce.",
+      "Squeeze over a little lemon.",
+      "Roll up tightly and slice in half."
+    ]
+  },
+  {
+    "title": "Tuna Melt",
+    "time_minutes": 15,
+    "difficulty": "easy",
+    "ingredients": ["canned tuna", "bread", "mayo", "cheese", "onion", "butter", "celery"],
+    "steps": [
+      "Mix tuna with mayo, finely diced onion, and celery.",
+      "Spread onto bread and top with cheese.",
+      "Butter the outside of the sandwich.",
+      "Grill in a pan until golden and the cheese melts."
+    ]
+  },
+  {
+    "title": "Stuffed Bell Peppers",
+    "time_minutes": 45,
+    "difficulty": "medium",
+    "ingredients": ["bell pepper", "rice", "ground beef", "onion", "garlic", "canned tomatoes", "cheese", "cumin"],
+    "steps": [
+      "Cook rice and brown the beef with onion, garlic, and cumin.",
+      "Mix in canned tomatoes.",
+      "Halve and seed the peppers and fill them with the mixture.",
+      "Top with cheese and bake until the peppers are tender.",
+      "Serve hot."
+    ]
+  },
+  {
+    "title": "Egg Fried Noodles",
+    "time_minutes": 20,
+    "difficulty": "easy",
+    "ingredients": ["noodles", "eggs", "cabbage", "carrot", "soy sauce", "garlic", "green onion", "oil"],
+    "steps": [
+      "Cook the noodles and drain.",
+      "Scramble the eggs in oil and set aside.",
+      "Stir-fry garlic, cabbage, and carrot until crisp-tender.",
+      "Add the noodles and soy sauce, tossing over high heat.",
+      "Fold in the eggs and green onion."
+    ]
+  },
+  {
+    "title": "Potato and Leek Soup",
+    "time_minutes": 35,
+    "difficulty": "easy",
+    "ingredients": ["potato", "leek", "onion", "garlic", "vegetable stock", "cream", "butter", "salt"],
+    "steps": [
+      "Soften sliced leek, onion, and garlic in butter.",
+      "Add diced potato and vegetable stock.",
+      "Simmer until the potato is soft.",
+      "Blend until smooth and stir in cream.",
+      "Season with salt and serve."
+    ]
+  },
+  {
+    "title": "Bruschetta",
+    "time_minutes": 15,
+    "difficulty": "easy",
+    "ingredients": ["bread", "tomato", "garlic", "basil", "olive oil", "balsamic vinegar", "salt"],
+    "steps": [
+      "Toast slices of bread and rub with a cut garlic clove.",
+      "Dice tomatoes and mix with chopped basil, olive oil, and salt.",
+      "Spoon the tomato mixture onto the toast.",
+      "Drizzle with balsamic vinegar and serve."
+    ]
+  },
+  {
+    "title": "Frittata",
+    "time_minutes": 30,
+    "difficulty": "medium",
+    "ingredients": ["eggs", "potato", "onion", "cheese", "spinach", "olive oil", "salt", "pepper"],
+    "steps": [
+      "Saute diced potato and onion in an ovenproof pan until tender.",
+      "Add spinach until wilted.",
+      "Beat eggs with cheese, salt, and pepper and pour over the vegetables.",
+      "Cook until the edges set, then finish under the broiler until puffed and golden."
+    ]
+  },
+  {
+    "title": "Peanut Noodles",
+    "time_minutes": 20,
+    "difficulty": "easy",
+    "ingredients": ["noodles", "peanut butter", "soy sauce", "garlic", "ginger", "lime", "honey", "green onion"],
+    "steps": [
+      "Cook the noodles and drain.",
+      "Whisk peanut butter, soy sauce, garlic, ginger, lime juice, and honey with a little warm water.",
+      "Toss the noodles in the sauce.",
+      "Top with sliced green onion and serve warm or cold."
+    ]
+  },
+  {
+    "title": "Sausage and Pepper Skillet",
+    "time_minutes": 25,
+    "difficulty": "easy",
+    "ingredients": ["sausage", "bell pepper", "onion", "garlic", "olive oil", "canned tomatoes", "salt", "pepper"],
+    "steps": [
+      "Brown sliced sausage in olive oil.",
+      "Add sliced peppers, onion, and garlic; cook until soft.",
+      "Stir in canned tomatoes and simmer 10 minutes.",
+      "Season with salt and pepper.",
+      "Serve on its own or with bread."
+    ]
+  },
+  {
+    "title": "Garlic Butter Shrimp",
+    "time_minutes": 15,
+    "difficulty": "easy",
+    "ingredients": ["shrimp", "garlic", "butter", "lemon", "parsley", "chili flakes", "salt"],
+    "steps": [
+      "Melt butter and sizzle minced garlic with chili flakes.",
+      "Add the shrimp and cook until pink and opaque.",
+      "Squeeze over lemon juice and season with salt.",
+      "Finish with chopped parsley and serve with bread or rice."
+    ]
+  },
+  {
+    "title": "Caprese Grilled Cheese",
+    "time_minutes": 12,
+    "difficulty": "easy",
+    "ingredients": ["bread", "mozzarella", "tomato", "basil", "butter", "balsamic vinegar"],
+    "steps": [
+      "Layer mozzarella, sliced tomato, and basil between two slices of bread.",
+      "Add a few drops of balsamic vinegar.",
+      "Butter the outsides and grill until golden.",
+      "Flip and cook until the cheese melts."
+    ]
+  },
+  {
+    "title": "Sweet Potato and Black Bean Bowl",
+    "time_minutes": 35,
+    "difficulty": "easy",
+    "ingredients": ["sweet potato", "black beans", "rice", "avocado", "lime", "cumin", "olive oil", "cilantro"],
+    "steps": [
+      "Toss cubed sweet potato with olive oil, cumin, and salt and roast until tender.",
+      "Warm the black beans and cook rice.",
+      "Build bowls with rice, sweet potato, and beans.",
+      "Top with sliced avocado, cilantro, and a squeeze of lime."
+    ]
+  }
+]

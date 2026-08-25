@@ -1,0 +1,23 @@
+# ---- Node / Expo (frontend) ----
+whats-cooking/node_modules/
+whats-cooking/.expo/
+whats-cooking/dist/
+whats-cooking/web-build/
+whats-cooking/ios/
+whats-cooking/android/
+npm-debug.*
+*.tsbuildinfo
+
+# NOTE: whats-cooking/.env is committed intentionally (private repo, no secrets).
+# If this repo ever goes public, add `whats-cooking/.env` here.
+
+# ---- Python (backend) ----
+backend/.venv/
+**/__pycache__/
+*.py[cod]
+backend/build/
+backend/.bedrock_agentcore/
+
+# ---- Logs / misc ----
+*.log
+.DS_Store
