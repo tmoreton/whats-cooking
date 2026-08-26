@@ -3,6 +3,7 @@ name: Publish production iOS update
 on:
   push:
     branches: ['main']
+    # Avoid publishing a mobile update for backend- or website-only changes.
     paths:
       - 'whats-cooking/**'
 
