@@ -103,9 +103,9 @@ export default function HomeScreen() {
           end={{ x: 1, y: 1 }}
           style={[styles.header, { paddingTop: insets.top + spacing.xl }]}
         >
-          <Text style={styles.eyebrow}>What's Cooking?</Text>
+          <Text style={styles.eyebrow}>Snap · Cook · Eat</Text>
           <Text style={styles.headerTitle}>
-            Turn what you have{"\n"}into what you eat.
+            What's cookin',{"\n"}"good lookin'?"
           </Text>
           <Text style={styles.headerSubtitle}>
             Snap your fridge, pantry &amp; spice rack — get real recipes in seconds.
