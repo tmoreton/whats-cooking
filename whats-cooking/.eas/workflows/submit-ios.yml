@@ -14,4 +14,6 @@ jobs:
     needs: [build_ios]
     params:
       build_id: ${{ needs.build_ios.outputs.build_id }}
-      internal_groups: ['Internal']
+      # App Store Connect adds builds to auto-distribution groups itself.
+      # Explicitly assigning the "Internal" group makes Apple reject the job
+      # after the binary has already uploaded and finished processing.
