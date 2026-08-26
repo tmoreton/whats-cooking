@@ -85,13 +85,15 @@ export default function CameraScreen() {
         throw new Error("No photo captured");
       }
 
-      // Resize to a max dimension of 1024px and produce a base64 PNG.
+      // Resize to a max dimension of 1024px and produce a compressed base64
+      // JPEG. JPEG (not PNG) keeps photo payloads small enough to stay well
+      // under the API Gateway 10 MB limit even with several photos.
       const manipulated = await ImageManipulator.manipulateAsync(
         photo.uri,
         [{ resize: { width: MAX_DIMENSION } }],
         {
-          compress: 0.8,
-          format: ImageManipulator.SaveFormat.PNG,
+          compress: 0.6,
+          format: ImageManipulator.SaveFormat.JPEG,
           base64: true,
         }
       );

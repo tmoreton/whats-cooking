@@ -48,6 +48,19 @@ _agent = Agent(
 app = BedrockAgentCoreApp()
 
 
+def _image_format(data: bytes) -> str:
+    """Detect the Bedrock Converse image format from a byte signature."""
+    if data[:3] == b"\xff\xd8\xff":
+        return "jpeg"
+    if data[:8] == b"\x89PNG\r\n\x1a\n":
+        return "png"
+    if data[:4] == b"RIFF" and data[8:12] == b"WEBP":
+        return "webp"
+    if data[:6] in (b"GIF87a", b"GIF89a"):
+        return "gif"
+    return "jpeg"  # sensible default — the app sends JPEG
+
+
 def _empty_response(message: str) -> dict:
     """Return a friendly, well-formed RecipeResponse when we have no image to work with."""
     return RecipeResponse(
@@ -97,6 +110,8 @@ def invoke(payload: dict) -> dict:
         )
 
     # 2. Decode each base64 image into bytes for the Converse multimodal blocks.
+    #    The client sends JPEG (smaller payloads); detect the real format from
+    #    the magic bytes so PNG/JPEG/WebP/GIF all work regardless of the client.
     image_blocks = []
     for item in raw_images[:MAX_IMAGES]:
         if not isinstance(item, str) or not item:
@@ -106,11 +121,12 @@ def invoke(payload: dict) -> dict:
         except (binascii.Error, ValueError):
             continue
         if data:
-            image_blocks.append({"image": {"format": "png", "source": {"bytes": data}}})
+            fmt = _image_format(data)
+            image_blocks.append({"image": {"format": fmt, "source": {"bytes": data}}})
 
     if not image_blocks:
         return _empty_response(
-            "Those photos didn't decode cleanly. Please send base64-encoded PNGs "
+            "Those photos didn't decode cleanly. Please send base64-encoded images "
             "(no data: prefix) and I'll take another look."
         )
 
