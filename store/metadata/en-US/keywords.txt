@@ -1,1 +1,1 @@
-pantry,scanner,food waste,dinner,lunch,breakfast,cuisine,grocery,spice,vegetarian
+pantry,scanner,leftovers,dinner,lunch,breakfast,grocery,spice,vegetarian,vegan,gluten free,cuisine

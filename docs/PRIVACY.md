@@ -2,62 +2,67 @@
 
 _Last updated: August 26, 2026_
 
-What's Cooking? ("the app") helps you turn photos of your fridge, pantry, and
-spice rack into recipe suggestions. This policy explains what the app does and
-doesn't do with your data. We've kept it deliberately small because the app
-collects very little.
+What's Cooking? ("the app") turns photos of a fridge, pantry, and spice rack
+into recipe suggestions. This policy explains what happens to app data.
 
-## What we collect
+## Information the app processes
 
-- **Photos you capture in the app.** When you tap "Start a scan," the photos you
-  take are resized on your device and sent to our backend so an AI model can
-  identify ingredients and suggest recipes.
-- **Your in-app preferences** (vegetarian / vegan / gluten-free, "Surprise me")
-  and your recent-scan results. These are stored **only on your device** and are
-  never uploaded.
+- **Photos taken for a scan.** The app resizes photos on the device and sends
+  them securely to the backend so an AI model can identify ingredients and
+  create recipes.
+- **Preferences and recent results.** Dietary settings and recent scan results
+  are stored only on the device and are not uploaded.
+- **Technical connection data.** The infrastructure may retain limited request
+  metadata, including an IP address, request identifier, route, status, and
+  timing, in operational and security logs for up to 14 days.
 
-We do **not** collect your name, email, contacts, location, or any account
-information. The app has no login and no user accounts.
+The app has no account system and does not request a name, email address,
+contacts, or precise location.
 
 ## How photos are used
 
-- Photos are transmitted over an encrypted (HTTPS) connection to our backend,
-  which runs on Amazon Web Services (Amazon Bedrock / AgentCore) in the United
-  States. The AI model analyzes the image and returns identified ingredients and
-  recipe suggestions.
-- Photos are processed **transiently** to generate your results. We do **not**
-  sell your photos, use them to build advertising profiles, or share them with
-  third parties for their own purposes.
-- For operational reliability, request data may appear in server logs. Logs are
-  retained for a limited period (currently 14 days) and then deleted.
+Photos are transmitted over an encrypted HTTPS connection to the backend on
+Amazon Web Services in the United States. They are processed transiently to
+return ingredient and recipe results and are not intentionally retained after
+that real-time request.
 
-## Camera
+Photos are not sold, used for advertising, or provided to third parties for
+their own marketing.
 
-The app requests camera access solely so you can photograph your fridge, pantry,
-or spice rack. It does not access your photo library or record audio.
+## Camera access
 
-## Data retention & your choices
+The app requests camera access only so the user can photograph food and
+ingredients. It does not access the photo library or record audio.
 
-- On-device data (preferences, recent scans) stays on your device. You can clear
-  recent scans in the app, and removing the app deletes all on-device data.
-- Server-side logs are automatically deleted on the retention schedule above.
+## Retention and choices
+
+- Recent results can be cleared from inside the app.
+- Deleting the app removes its on-device preferences and recent results.
+- Operational and security logs are automatically deleted after no more than
+  14 days.
+
+## Advertising, analytics, and tracking
+
+What's Cooking? contains no advertising or third-party analytics SDKs. It does
+not track users across apps or websites and does not sell personal data.
+
+## Service providers
+
+Amazon Web Services provides the infrastructure that processes scan requests
+on our behalf. App data is not shared with third parties for their own purposes.
 
 ## Children
 
-The app is not directed to children under 13 and does not knowingly collect
-personal information from them.
+The app is not directed to children under 13, and we do not knowingly collect
+personal information from children under 13.
 
-## Third parties
+## Contact and privacy requests
 
-Our backend infrastructure is provided by Amazon Web Services, acting as our
-processor. We do not integrate advertising or analytics SDKs.
+For a privacy question or request, contact the developer through the
+[GitHub support page](https://github.com/tmoreton/whats-cooking/issues/new) or
+[developer profile](https://github.com/tmoreton).
 
 ## Changes
 
-We may update this policy; the "Last updated" date above will change accordingly.
-
-## Contact
-
-Questions about this policy? Contact the developer at
-**support@whatscooking.example** (replace with your real support email before
-publishing).
+We may update this policy as the app changes. The date at the top of this page
+will show the latest revision.

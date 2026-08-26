@@ -8,7 +8,7 @@ you can actually make.
 ┌──────────────────────┐   HTTPS + JWT   ┌───────────────────┐   SigV4   ┌────────────────────────┐
 │ Expo iOS app         │ ──────────────► │ API Gateway +     │ ────────► │ AgentCore runtime       │
 │ (whats-cooking/)     │                 │ Lambda proxy      │           │ Strands + Claude vision │
-│ camera → images[]    │ ◄────────────── │ (proxy/)          │ ◄──────── │ (backend/)              │
+│ camera → images[]    │ ◄────────────── │ AWS_IAM auth      │ ◄──────── │ (backend/)              │
 │ recipe cards         │  RecipeResponse │ Cognito authorizer│           │ generates recipes       │
 └──────────────────────┘                 └───────────────────┘           └────────────────────────┘
 ```
@@ -18,8 +18,10 @@ you can actually make.
 | Path | What it is |
 |------|-----------|
 | `backend/` | Strands agent + AgentCore entrypoint (`main.py`). Vision → ingredients → AI-generated recipes. |
-| `proxy/` | SAM app: HTTP API + Lambda that SigV4-signs to the runtime, protected by a Cognito JWT authorizer. |
+| `proxy/` | SAM app: AWS_IAM-protected HTTP API + Lambda that SigV4-signs requests to the runtime. |
 | `whats-cooking/` | Expo (SDK 52, expo-router) iOS app. **All `npm`/`eas` commands run from here.** |
+| `store/` | App Store metadata and correctly sized iPhone/iPad screenshots. |
+| `docs/` | GitHub Pages marketing, support, and privacy site. |
 | `docs/TESTFLIGHT.md` | Deep-dive on the EAS build/update setup. |
 | `docs/PRIVACY.md` | Privacy policy (host it and use the URL in App Store Connect). |
 | `whats-cooking/.eas/workflows/` | EAS Workflows: auto OTA on push + build/submit to TestFlight. |
@@ -97,11 +99,12 @@ Connect, and it appears in TestFlight once Apple finishes processing.
 
 ### 4. Before the first public submission
 
-In **App Store Connect** set the **Privacy Policy URL** (host
-[`docs/PRIVACY.md`](docs/PRIVACY.md) somewhere public), complete the **App
-Privacy** questionnaire (declare *Photos / User Content* used for app
-functionality, not linked to identity), and set a Support URL, category, and age
-rating. Export compliance is already answered via
+In **App Store Connect**, use the public marketing, support, and privacy URLs
+tracked in [`store/metadata/en-US`](store/metadata/en-US), complete the **App
+Privacy** questionnaire, and set a category and age rating. Photos are processed
+transiently for the real-time request and are not intentionally retained;
+technical connection data, including IP addresses, may remain in operational
+logs for up to 14 days. Export compliance is already answered via
 `ios.config.usesNonExemptEncryption: false` in `app.json`.
 
 ---
@@ -175,3 +178,7 @@ cd backend && .venv/bin/agentcore destroy
 - Guest access means anyone can obtain creds and call the (throttled) API. To
   restrict the API to genuine instances of *your* app, add Apple **App Attest**
   before a broad public launch.
+
+## License
+
+Released under the [MIT License](LICENSE).
