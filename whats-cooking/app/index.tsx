@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from "react";
 import {
+  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -46,6 +47,9 @@ export default function HomeScreen() {
   const [prefs, setPrefs] = useState<DietaryPreferences>(DEFAULT_PREFERENCES);
   const [mode, setMode] = useState<ScanMode>("normal");
   const [recent, setRecent] = useState<RecentScan[]>([]);
+  const [prefsOpen, setPrefsOpen] = useState(false);
+
+  const anyPref = prefs.vegetarian || prefs.vegan || prefs.glutenFree;
 
   useFocusEffect(
     useCallback(() => {
@@ -103,9 +107,20 @@ export default function HomeScreen() {
           end={{ x: 1, y: 1 }}
           style={[styles.header, { paddingTop: insets.top + spacing.xl }]}
         >
+          <Pressable
+            onPress={() => setPrefsOpen(true)}
+            style={[styles.prefsButton, { top: insets.top + spacing.sm }]}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="Dietary preferences"
+          >
+            <Ionicons name="options-outline" size={20} color={colors.white} />
+            {anyPref ? <View style={styles.prefsDot} /> : null}
+          </Pressable>
+
           <Text style={styles.eyebrow}>Snap · Cook · Eat</Text>
           <Text style={styles.headerTitle}>
-            What's cookin',{"\n"}"good lookin'?"
+            What's cookin',{"\n"}good lookin'?
           </Text>
           <Text style={styles.headerSubtitle}>
             Snap your fridge, pantry &amp; spice rack — get real recipes in seconds.
@@ -163,35 +178,6 @@ export default function HomeScreen() {
                 ios_backgroundColor={SWITCH_TRACK.false}
               />
             </View>
-          </View>
-
-          {/* Preferences */}
-          <View style={styles.card}>
-            <View style={styles.cardHeader}>
-              <View style={styles.cardHeaderIcon}>
-                <Ionicons name="options-outline" size={16} color={colors.primary} />
-              </View>
-              <Text style={styles.cardHeaderTitle}>Dietary preferences</Text>
-            </View>
-            <PrefRow
-              label="Vegetarian"
-              icon="leaf-outline"
-              value={prefs.vegetarian}
-              onChange={(v) => updatePref("vegetarian", v)}
-            />
-            <PrefRow
-              label="Vegan"
-              icon="flower-outline"
-              value={prefs.vegan}
-              onChange={(v) => updatePref("vegan", v)}
-            />
-            <PrefRow
-              label="Gluten-free"
-              icon="nutrition-outline"
-              value={prefs.glutenFree}
-              onChange={(v) => updatePref("glutenFree", v)}
-              last
-            />
           </View>
 
           {/* Recent scans */}
@@ -260,6 +246,66 @@ export default function HomeScreen() {
           )}
         </View>
       </ScrollView>
+
+      {/* Dietary preferences modal */}
+      <Modal
+        visible={prefsOpen}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setPrefsOpen(false)}
+      >
+        <Pressable
+          style={styles.modalBackdrop}
+          onPress={() => setPrefsOpen(false)}
+        >
+          <Pressable
+            style={[styles.modalSheet, { paddingBottom: insets.bottom + spacing.lg }]}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <View style={styles.modalHandle} />
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Dietary preferences</Text>
+              <Pressable
+                onPress={() => setPrefsOpen(false)}
+                hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel="Close"
+              >
+                <Ionicons name="close" size={24} color={colors.textSecondary} />
+              </Pressable>
+            </View>
+            <Text style={styles.modalSubtitle}>
+              We'll only suggest recipes that fit these.
+            </Text>
+            <PrefRow
+              label="Vegetarian"
+              icon="leaf-outline"
+              value={prefs.vegetarian}
+              onChange={(v) => updatePref("vegetarian", v)}
+            />
+            <PrefRow
+              label="Vegan"
+              icon="flower-outline"
+              value={prefs.vegan}
+              onChange={(v) => updatePref("vegan", v)}
+            />
+            <PrefRow
+              label="Gluten-free"
+              icon="nutrition-outline"
+              value={prefs.glutenFree}
+              onChange={(v) => updatePref("glutenFree", v)}
+              last
+            />
+            <Pressable
+              onPress={() => setPrefsOpen(false)}
+              style={({ pressed }) => [styles.modalDone, pressed && styles.pressed]}
+              accessibilityRole="button"
+            >
+              <Text style={styles.modalDoneText}>Done</Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -333,6 +379,27 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
     lineHeight: 21,
   },
+  prefsButton: {
+    position: "absolute",
+    right: spacing.lg,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(255,255,255,0.18)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  prefsDot: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    width: 9,
+    height: 9,
+    borderRadius: 5,
+    backgroundColor: colors.white,
+    borderWidth: 1.5,
+    borderColor: colors.primary,
+  },
   body: {
     padding: spacing.lg,
     marginTop: spacing.lg,
@@ -393,33 +460,51 @@ const styles = StyleSheet.create({
     marginRight: spacing.md,
   },
 
-  // Cards
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.cardBorder,
-    paddingHorizontal: spacing.lg,
-    marginBottom: spacing.xl,
+  // Preferences modal
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "flex-end",
   },
-  cardHeader: {
+  modalSheet: {
+    backgroundColor: colors.surface,
+    borderTopLeftRadius: radii.xl,
+    borderTopRightRadius: radii.xl,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.sm,
+  },
+  modalHandle: {
+    alignSelf: "center",
+    width: 40,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: colors.cardBorder,
+    marginBottom: spacing.md,
+  },
+  modalHeader: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.divider,
-    gap: spacing.sm,
+    justifyContent: "space-between",
   },
-  cardHeaderIcon: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
-    backgroundColor: colors.primarySoft,
+  modalTitle: {
+    ...typography.heading,
+  },
+  modalSubtitle: {
+    ...typography.caption,
+    marginTop: 2,
+    marginBottom: spacing.sm,
+  },
+  modalDone: {
+    backgroundColor: colors.text,
+    borderRadius: radii.md,
+    paddingVertical: spacing.md + 2,
     alignItems: "center",
-    justifyContent: "center",
+    marginTop: spacing.lg,
   },
-  cardHeaderTitle: {
-    ...typography.subheading,
+  modalDoneText: {
+    color: colors.white,
+    fontSize: 16,
+    fontWeight: "700",
   },
   prefRow: {
     flexDirection: "row",
