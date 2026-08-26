@@ -118,7 +118,7 @@ export default function HomeScreen() {
 
           <Text style={styles.eyebrow}>Snap · Cook · Eat</Text>
           <Text style={styles.headerTitle}>
-            What's cookin',{"\n"}good lookin'?
+            What's cookin',{"\n"}good lookin'
           </Text>
           <Text style={styles.headerSubtitle}>
             Snap your fridge, pantry &amp; spice rack — get real recipes in seconds.
@@ -126,8 +126,8 @@ export default function HomeScreen() {
         </LinearGradient>
 
         <View style={styles.body}>
-          {/* Scan panel — prominent CTA with the Surprise-me toggle attached */}
-          <View style={styles.scanPanel}>
+          {/* Big centered circular CTA */}
+          <View style={styles.scanSection}>
             <Pressable
               onPress={openCamera}
               style={({ pressed }) => pressed && styles.pressed}
@@ -138,41 +138,33 @@ export default function HomeScreen() {
                 colors={[colors.primary, colors.primaryDark]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
-                style={styles.scanButton}
+                style={styles.scanCircle}
               >
-                <View style={styles.scanIconWrap}>
-                  <Ionicons name="camera" size={30} color={colors.white} />
-                </View>
-                <View style={styles.scanText}>
-                  <Text style={styles.scanTitle}>Start a scan</Text>
-                  <Text style={styles.scanSubtitle}>
-                    Snap your fridge, pantry &amp; spices
-                  </Text>
-                </View>
-                <Ionicons name="arrow-forward" size={24} color={colors.white} />
+                <Ionicons name="camera" size={62} color={colors.white} />
               </LinearGradient>
             </Pressable>
+            <Text style={styles.scanTitle}>Start a scan</Text>
+            <Text style={styles.scanSubtitle}>
+              Snap your fridge, pantry &amp; spices
+            </Text>
 
-            <View style={styles.surpriseRow}>
-              <View style={styles.surpriseIconWrap}>
-                <Ionicons
-                  name="sparkles"
-                  size={17}
-                  color={mode === "surprise" ? colors.primary : colors.textSecondary}
-                />
-              </View>
-              <View style={styles.prefLabelWrap}>
-                <Text style={styles.prefLabel}>Surprise me</Text>
-                <Text style={styles.prefSublabel}>
-                  Bolder, more creative suggestions
-                </Text>
-              </View>
+            <Pressable
+              onPress={() => updateMode(mode !== "surprise")}
+              style={styles.surpriseChip}
+              accessibilityRole="button"
+            >
+              <Ionicons
+                name="sparkles"
+                size={16}
+                color={mode === "surprise" ? colors.primary : colors.textSecondary}
+              />
+              <Text style={styles.surpriseChipText}>Surprise me</Text>
               <Toggle
                 value={mode === "surprise"}
                 onValueChange={updateMode}
                 accessibilityLabel="Surprise me"
               />
-            </View>
+            </Pressable>
           </View>
 
           {/* Recent scans */}
@@ -394,58 +386,49 @@ const styles = StyleSheet.create({
   },
   pressed: { opacity: 0.94 },
 
-  // Scan panel
-  scanPanel: {
-    borderRadius: radii.lg,
+  // Scan section — big centered circular CTA
+  scanSection: {
+    alignItems: "center",
+    paddingTop: spacing.xl,
+    marginBottom: spacing.xxl,
+  },
+  scanCircle: {
+    width: 184,
+    height: 184,
+    borderRadius: 92,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  scanTitle: {
+    fontSize: 24,
+    fontWeight: "800",
+    color: colors.text,
+    letterSpacing: -0.5,
+    marginTop: spacing.lg,
+  },
+  scanSubtitle: {
+    fontSize: 15,
+    color: colors.textSecondary,
+    marginTop: spacing.xs,
+    textAlign: "center",
+  },
+  surpriseChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "center",
+    gap: spacing.sm,
+    marginTop: spacing.xl,
+    paddingLeft: spacing.lg,
+    paddingRight: spacing.sm,
+    paddingVertical: spacing.xs + 2,
+    borderRadius: radii.pill,
     borderWidth: 1,
     borderColor: colors.cardBorder,
     backgroundColor: colors.surface,
-    overflow: "hidden",
-    marginBottom: spacing.xl,
   },
-  scanButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: spacing.xl,
-    paddingHorizontal: spacing.lg,
-  },
-  scanIconWrap: {
-    width: 56,
-    height: 56,
-    borderRadius: radii.md,
-    backgroundColor: "rgba(255,255,255,0.2)",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: spacing.md,
-  },
-  scanText: { flex: 1 },
-  scanTitle: {
-    fontSize: 22,
-    fontWeight: "800",
-    color: colors.white,
-    letterSpacing: -0.4,
-  },
-  scanSubtitle: {
-    fontSize: 14,
-    color: "rgba(255,255,255,0.92)",
-    marginTop: 2,
-  },
-  surpriseRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md + 2,
-    borderTopWidth: 1,
-    borderTopColor: colors.divider,
-  },
-  surpriseIconWrap: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    backgroundColor: colors.card,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: spacing.md,
+  surpriseChipText: {
+    ...typography.body,
+    fontWeight: "600",
   },
 
   // Preferences modal
