@@ -1,9 +1,3 @@
-import "react-native-get-random-values";
-import {
-  CognitoIdentityClient,
-  GetCredentialsForIdentityCommand,
-  GetIdCommand,
-} from "@aws-sdk/client-cognito-identity";
 import { HttpRequest } from "@aws-sdk/protocol-http";
 import { SignatureV4 } from "@aws-sdk/signature-v4";
 import { Sha256 } from "@aws-crypto/sha256-js";
@@ -40,6 +34,41 @@ type GuestCreds = {
   sessionToken: string;
 };
 
+type CognitoCredentialsResponse = {
+  Credentials?: {
+    AccessKeyId?: string;
+    SecretKey?: string;
+    SessionToken?: string;
+    Expiration?: number | string;
+  };
+};
+
+const COGNITO_IDENTITY_URL =
+  `https://cognito-identity.${AWS_REGION}.amazonaws.com/`;
+
+async function cognitoIdentityRequest<T>(
+  operation: "GetId" | "GetCredentialsForIdentity",
+  body: Record<string, string>
+): Promise<T> {
+  const response = await fetch(COGNITO_IDENTITY_URL, {
+    method: "POST",
+    headers: {
+      accept: "application/json",
+      "content-type": "application/x-amz-json-1.1",
+      "x-amz-target": `AWSCognitoIdentityService.${operation}`,
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      "Couldn't authenticate with the kitchen service. Please try again."
+    );
+  }
+
+  return (await response.json()) as T;
+}
+
 let cachedCreds: { value: GuestCreds; expiresAt: number } | null = null;
 let cachedIdentityId: string | null = null;
 
@@ -48,10 +77,10 @@ async function getGuestCredentials(): Promise<GuestCreds | null> {
   const now = Date.now();
   if (cachedCreds && cachedCreds.expiresAt > now) return cachedCreds.value;
 
-  const cog = new CognitoIdentityClient({ region: AWS_REGION });
   if (!cachedIdentityId) {
-    const { IdentityId } = await cog.send(
-      new GetIdCommand({ IdentityPoolId: IDENTITY_POOL_ID })
+    const { IdentityId } = await cognitoIdentityRequest<{ IdentityId?: string }>(
+      "GetId",
+      { IdentityPoolId: IDENTITY_POOL_ID }
     );
     cachedIdentityId = IdentityId ?? null;
   }
@@ -59,8 +88,9 @@ async function getGuestCredentials(): Promise<GuestCreds | null> {
     throw new Error("Couldn't reach the kitchen service. Please try again.");
   }
 
-  const { Credentials } = await cog.send(
-    new GetCredentialsForIdentityCommand({ IdentityId: cachedIdentityId })
+  const { Credentials } = await cognitoIdentityRequest<CognitoCredentialsResponse>(
+    "GetCredentialsForIdentity",
+    { IdentityId: cachedIdentityId }
   );
   if (
     !Credentials?.AccessKeyId ||
@@ -75,8 +105,15 @@ async function getGuestCredentials(): Promise<GuestCreds | null> {
     secretAccessKey: Credentials.SecretKey,
     sessionToken: Credentials.SessionToken,
   };
-  const expMs = Credentials.Expiration
-    ? Credentials.Expiration.getTime()
+  const rawExpiration = Credentials.Expiration;
+  const parsedExpiration =
+    typeof rawExpiration === "number"
+      ? rawExpiration * 1000
+      : typeof rawExpiration === "string"
+        ? Date.parse(rawExpiration)
+        : Number.NaN;
+  const expMs = Number.isFinite(parsedExpiration)
+    ? parsedExpiration
     : now + 3_000_000;
   cachedCreds = { value, expiresAt: expMs - 120_000 };
   return value;
