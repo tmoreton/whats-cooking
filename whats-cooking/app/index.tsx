@@ -4,13 +4,13 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Switch,
   Text,
   TextStyle,
   View,
   ViewStyle,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import Toggle from "@/components/Toggle";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -39,8 +39,6 @@ function formatWhen(ts: number): string {
 }
 
 type IonName = React.ComponentProps<typeof Ionicons>["name"];
-
-const SWITCH_TRACK = { false: "#E9E9EA", true: colors.primary };
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
@@ -169,13 +167,10 @@ export default function HomeScreen() {
                   Bolder, more creative suggestions
                 </Text>
               </View>
-              <Switch
+              <Toggle
                 value={mode === "surprise"}
                 onValueChange={updateMode}
                 accessibilityLabel="Surprise me"
-                trackColor={SWITCH_TRACK}
-                thumbColor={colors.white}
-                ios_backgroundColor={SWITCH_TRACK.false}
               />
             </View>
           </View>
@@ -335,14 +330,7 @@ function PrefRow({
       <View style={styles.prefLabelWrap}>
         <Text style={styles.prefLabel}>{label}</Text>
       </View>
-      <Switch
-        value={value}
-        onValueChange={onChange}
-        accessibilityLabel={label}
-        trackColor={SWITCH_TRACK}
-        thumbColor={colors.white}
-        ios_backgroundColor={SWITCH_TRACK.false}
-      />
+      <Toggle value={value} onValueChange={onChange} accessibilityLabel={label} />
     </View>
   );
 }
