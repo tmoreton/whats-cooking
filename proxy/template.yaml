@@ -2,9 +2,9 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
   Authenticated HTTP API + Lambda proxy for the "What's Cooking?" app. The proxy
-  SigV4-signs to the AgentCore runtime. The public route is protected by a
-  Cognito JWT authorizer (machine-to-machine client_credentials) so it meets the
-  AWS/Isengard "no unauthenticated public endpoint" standard.
+  SigV4-signs to the AgentCore runtime. The public route uses AWS_IAM auth; the
+  app obtains short-lived guest credentials from a Cognito Identity Pool and
+  SigV4-signs its requests — so no long-lived secret ships in the app.
 
 Parameters:
   AgentRuntimeArn:
@@ -29,49 +29,6 @@ Globals:
         POWERTOOLS_LOG_LEVEL: INFO
 
 Resources:
-  # ---- Auth: Cognito user pool for machine-to-machine (client_credentials) ----
-  UserPool:
-    Type: AWS::Cognito::UserPool
-    Properties:
-      UserPoolName: !Sub '${AWS::StackName}-pool'
-      # Cognito encrypts user pool data at rest by default.
-      AdminCreateUserConfig:
-        AllowAdminCreateUserOnly: true  # no self sign-up; M2M only
-
-  UserPoolResourceServer:
-    Type: AWS::Cognito::UserPoolResourceServer
-    Properties:
-      UserPoolId: !Ref UserPool
-      Identifier: whatscooking
-      Name: whatscooking
-      Scopes:
-        - ScopeName: invoke
-          ScopeDescription: Invoke the recipe proxy
-
-  UserPoolDomain:
-    Type: AWS::Cognito::UserPoolDomain
-    Properties:
-      # Domain prefix must be globally unique within the region.
-      Domain: !Sub 'whats-cooking-${AWS::AccountId}'
-      UserPoolId: !Ref UserPool
-
-  UserPoolClient:
-    Type: AWS::Cognito::UserPoolClient
-    DependsOn: UserPoolResourceServer
-    Properties:
-      ClientName: !Sub '${AWS::StackName}-m2m-client'
-      UserPoolId: !Ref UserPool
-      GenerateSecret: true
-      AllowedOAuthFlowsUserPoolClient: true
-      AllowedOAuthFlows: [client_credentials]
-      AllowedOAuthScopes:
-        - whatscooking/invoke
-      SupportedIdentityProviders: [COGNITO]
-      # Short-lived access tokens.
-      AccessTokenValidity: 1
-      TokenValidityUnits:
-        AccessToken: hours
-
   # ---- API ----
   ApiAccessLogs:
     Type: AWS::Logs::LogGroup
@@ -84,25 +41,59 @@ Resources:
     Properties:
       CorsConfiguration:
         AllowOrigins: ['*']
-        AllowHeaders: ['content-type', 'authorization']
+        AllowHeaders: ['content-type', 'authorization', 'x-amz-date', 'x-amz-security-token']
         AllowMethods: ['POST', 'OPTIONS']
-      # Cap throughput so a leaked client credential / runaway client can't
-      # run up unbounded Bedrock cost. ~5 req/s steady, burst 10.
+      # Cap throughput so a runaway client can't run up unbounded Bedrock cost.
       DefaultRouteSettings:
         ThrottlingRateLimit: 5
         ThrottlingBurstLimit: 10
       Auth:
-        Authorizers:
-          CognitoJwtAuthorizer:
-            IdentitySource: '$request.header.Authorization'
-            JwtConfiguration:
-              issuer: !Sub 'https://cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}'
-              audience:
-                - !Ref UserPoolClient
-        DefaultAuthorizer: CognitoJwtAuthorizer
+        # AWS_IAM: callers must SigV4-sign with (guest) credentials.
+        EnableIamAuthorizer: true
+        DefaultAuthorizer: AWS_IAM
       AccessLogSettings:
         DestinationArn: !GetAtt ApiAccessLogs.Arn
         Format: '{"requestId":"$context.requestId","ip":"$context.identity.sourceIp","routeKey":"$context.routeKey","status":"$context.status","protocol":"$context.protocol","responseLatency":"$context.responseLatency","authError":"$context.authorizer.error"}'
+
+  # ---- Auth: Cognito Identity Pool with guest (unauthenticated) access ----
+  IdentityPool:
+    Type: AWS::Cognito::IdentityPool
+    Properties:
+      IdentityPoolName: !Sub '${AWS::StackName}-guests'
+      AllowUnauthenticatedIdentities: true
+
+  GuestRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${AWS::StackName}-guest-role'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: cognito-identity.amazonaws.com
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                'cognito-identity.amazonaws.com:aud': !Ref IdentityPool
+              'ForAnyValue:StringLike':
+                'cognito-identity.amazonaws.com:amr': unauthenticated
+      Policies:
+        - PolicyName: invoke-recipe-api
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: execute-api:Invoke
+                # Least privilege: only the POST /invocations route of this API.
+                Resource: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ProxyApi}/*/POST/invocations'
+
+  IdentityPoolRoleAttachment:
+    Type: AWS::Cognito::IdentityPoolRoleAttachment
+    Properties:
+      IdentityPoolId: !Ref IdentityPool
+      Roles:
+        unauthenticated: !GetAtt GuestRole.Arn
 
   # ---- Lambda proxy ----
   RecipeProxyFunction:
@@ -130,9 +121,7 @@ Resources:
             Path: /invocations
             Method: POST
             Auth:
-              Authorizer: CognitoJwtAuthorizer
-              AuthorizationScopes:
-                - whatscooking/invoke
+              Authorizer: AWS_IAM
 
   RecipeProxyLogGroup:
     Type: AWS::Logs::LogGroup
@@ -144,14 +133,9 @@ Outputs:
   ApiUrl:
     Description: EXPO_PUBLIC_API_URL
     Value: !Sub 'https://${ProxyApi}.execute-api.${AWS::Region}.amazonaws.com/invocations'
-  CognitoTokenUrl:
-    Description: EXPO_PUBLIC_COGNITO_TOKEN_URL
-    Value: !Sub 'https://whats-cooking-${AWS::AccountId}.auth.${AWS::Region}.amazoncognito.com/oauth2/token'
-  CognitoClientId:
-    Description: EXPO_PUBLIC_COGNITO_CLIENT_ID
-    Value: !Ref UserPoolClient
-  CognitoScope:
-    Description: EXPO_PUBLIC_COGNITO_SCOPE
-    Value: whatscooking/invoke
-  UserPoolId:
-    Value: !Ref UserPool
+  IdentityPoolId:
+    Description: EXPO_PUBLIC_IDENTITY_POOL_ID
+    Value: !Ref IdentityPool
+  AwsRegion:
+    Description: EXPO_PUBLIC_AWS_REGION
+    Value: !Ref AWS::Region

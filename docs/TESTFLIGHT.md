@@ -74,8 +74,9 @@ build — bump `version` (so `runtimeVersion` changes) and re-run `submit-ios.ym
 
 `EXPO_PUBLIC_*` values come from the committed `whats-cooking/.env` and are
 inlined into the JS bundle by Expo at build time — nothing needs to be a CI
-secret. (Note: the Cognito client secret is bundled this way; fine for the beta,
-but move token issuance server-side before a broad public release.)
+secret. None of them are secrets: the API uses `AWS_IAM` auth and the app signs
+requests with short-lived Cognito **Identity Pool** guest credentials (the pool
+id is public by design), so no long-lived secret is bundled.
 
 ---
 

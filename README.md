@@ -35,7 +35,7 @@ build on another computer you normally **only touch the frontend** — you do
 |----------|-------|
 | AgentCore runtime | `arn:aws:bedrock-agentcore:us-east-1:253170388727:runtime/whats_cooking-iik9UNDwCW` |
 | Proxy API | `https://odrc67iamk.execute-api.us-east-1.amazonaws.com/invocations` |
-| Auth | Cognito user pool (machine-to-machine `client_credentials`) |
+| Auth | API is `AWS_IAM`; app uses Cognito **Identity Pool** guest creds + SigV4 (no secret bundled) |
 
 ---
 
@@ -165,9 +165,13 @@ cd backend && .venv/bin/agentcore destroy
 
 ## Security notes
 
-- The proxy endpoint is **not** public/unauthenticated — it's behind a Cognito
-  JWT authorizer (AWS/Isengard standard). Least-privilege IAM, access logging,
-  and log retention are configured in `proxy/template.yaml`.
-- The Cognito **client secret** ships in `whats-cooking/.env` for this private
-  repo / TestFlight demo. For a public App Store release, move token issuance
-  server-side or switch to per-user Cognito auth so no secret is bundled.
+- The proxy endpoint uses **`AWS_IAM` auth** — every request must be SigV4-signed
+  (unsigned requests get 403). **No long-lived secret ships in the app:** it
+  fetches short-lived guest credentials from a public Cognito **Identity Pool**
+  and signs with those. The guest IAM role is scoped to only `execute-api:Invoke`
+  on the `POST /invocations` route, and the API is throttled (5 req/s, burst 10).
+- Least-privilege IAM, access logging, and 14-day log retention (API, Lambda, and
+  the AgentCore runtime log group) are configured.
+- Guest access means anyone can obtain creds and call the (throttled) API. To
+  restrict the API to genuine instances of *your* app, add Apple **App Attest**
+  before a broad public launch.

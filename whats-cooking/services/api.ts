@@ -1,3 +1,12 @@
+import "react-native-get-random-values";
+import {
+  CognitoIdentityClient,
+  GetCredentialsForIdentityCommand,
+  GetIdCommand,
+} from "@aws-sdk/client-cognito-identity";
+import { HttpRequest } from "@aws-sdk/protocol-http";
+import { SignatureV4 } from "@aws-sdk/signature-v4";
+import { Sha256 } from "@aws-crypto/sha256-js";
 import {
   DietaryPreferences,
   RecipeResponse,
@@ -5,73 +14,111 @@ import {
 } from "@/types/recipe";
 
 /**
- * API endpoint.
- *
- * Read from Expo public env vars (see `.env` / `.env.example`), so the backend
- * connection details live in config rather than in source. `EXPO_PUBLIC_*`
- * variables are inlined into the client bundle at build time.
- *
- * NOTE: AgentCore runtimes are invoked via the SigV4 `InvokeAgentRuntime`
- * data-plane API — not a plain public URL. `EXPO_PUBLIC_API_URL` should point
- * at a thin proxy (e.g. API Gateway + Lambda) that SigV4-signs to the runtime
- * identified by `EXPO_PUBLIC_AGENT_RUNTIME_ARN`. In dev we fall back to a
- * locally-running `agentcore dev` server on :8080.
+ * Backend connection, read from Expo public env vars (see `.env`).
+ * `EXPO_PUBLIC_*` values are inlined into the client bundle at build time.
+ * None of these are secrets: the Identity Pool id is designed to be public.
  */
 export const AWS_REGION = process.env.EXPO_PUBLIC_AWS_REGION ?? "us-east-1";
 export const AGENT_RUNTIME_ARN = process.env.EXPO_PUBLIC_AGENT_RUNTIME_ARN ?? "";
+const IDENTITY_POOL_ID = process.env.EXPO_PUBLIC_IDENTITY_POOL_ID ?? "";
 
 const API_URL =
   process.env.EXPO_PUBLIC_API_URL ??
   (__DEV__ ? "http://localhost:8080/invocations" : "");
 
 /**
- * Cognito machine-to-machine (client_credentials) auth. The proxy's API Gateway
- * route is protected by a Cognito JWT authorizer (per AWS/Isengard standards —
- * no unauthenticated public endpoints), so we fetch a short-lived access token
- * and send it as a Bearer token. No login screen: the app authenticates itself.
+ * Auth: Cognito Identity Pool guest credentials + SigV4.
+ *
+ * The API route uses AWS_IAM auth. The app holds NO long-lived secret — it
+ * fetches short-lived AWS credentials for an anonymous ("guest") identity from
+ * the public Identity Pool id, then SigV4-signs each request. Creds are cached
+ * until ~2 min before expiry.
  */
-const COGNITO_TOKEN_URL = process.env.EXPO_PUBLIC_COGNITO_TOKEN_URL ?? "";
-const COGNITO_CLIENT_ID = process.env.EXPO_PUBLIC_COGNITO_CLIENT_ID ?? "";
-const COGNITO_CLIENT_SECRET = process.env.EXPO_PUBLIC_COGNITO_CLIENT_SECRET ?? "";
-const COGNITO_SCOPE = process.env.EXPO_PUBLIC_COGNITO_SCOPE ?? "whatscooking/invoke";
+type GuestCreds = {
+  accessKeyId: string;
+  secretAccessKey: string;
+  sessionToken: string;
+};
 
-let cachedToken: { value: string; expiresAt: number } | null = null;
+let cachedCreds: { value: GuestCreds; expiresAt: number } | null = null;
+let cachedIdentityId: string | null = null;
+
+async function getGuestCredentials(): Promise<GuestCreds | null> {
+  if (!IDENTITY_POOL_ID) return null; // e.g. local `agentcore dev`, no signing
+  const now = Date.now();
+  if (cachedCreds && cachedCreds.expiresAt > now) return cachedCreds.value;
+
+  const cog = new CognitoIdentityClient({ region: AWS_REGION });
+  if (!cachedIdentityId) {
+    const { IdentityId } = await cog.send(
+      new GetIdCommand({ IdentityPoolId: IDENTITY_POOL_ID })
+    );
+    cachedIdentityId = IdentityId ?? null;
+  }
+  if (!cachedIdentityId) {
+    throw new Error("Couldn't reach the kitchen service. Please try again.");
+  }
+
+  const { Credentials } = await cog.send(
+    new GetCredentialsForIdentityCommand({ IdentityId: cachedIdentityId })
+  );
+  if (
+    !Credentials?.AccessKeyId ||
+    !Credentials.SecretKey ||
+    !Credentials.SessionToken
+  ) {
+    throw new Error("Couldn't authenticate with the kitchen service. Please try again.");
+  }
+
+  const value: GuestCreds = {
+    accessKeyId: Credentials.AccessKeyId,
+    secretAccessKey: Credentials.SecretKey,
+    sessionToken: Credentials.SessionToken,
+  };
+  const expMs = Credentials.Expiration
+    ? Credentials.Expiration.getTime()
+    : now + 3_000_000;
+  cachedCreds = { value, expiresAt: expMs - 120_000 };
+  return value;
+}
+
+// Parse host/path without relying on RN's partial URL implementation.
+function splitUrl(u: string): { hostname: string; path: string } {
+  const m = u.match(/^https?:\/\/([^/]+)(\/.*)?$/);
+  return { hostname: m?.[1] ?? "", path: m?.[2] ?? "/" };
+}
 
 /**
- * Return a valid Cognito access token, fetching (and caching until ~1 min
- * before expiry) via the OAuth2 client_credentials grant. Returns null when
- * Cognito isn't configured (e.g. local `agentcore dev`), so callers can skip
- * the Authorization header.
+ * SigV4-sign a JSON POST to the API. Returns the headers to fetch with. The
+ * `body` must be the exact string sent (the signature covers its hash). When
+ * no Identity Pool is configured, returns plain headers (local dev).
  */
-async function getAccessToken(): Promise<string | null> {
-  if (!COGNITO_TOKEN_URL || !COGNITO_CLIENT_ID || !COGNITO_CLIENT_SECRET) {
-    return null;
+async function signedHeaders(body: string): Promise<Record<string, string>> {
+  const creds = await getGuestCredentials();
+  if (!creds) {
+    return { "content-type": "application/json", accept: "application/json" };
   }
-  const now = Date.now();
-  if (cachedToken && cachedToken.expiresAt > now) {
-    return cachedToken.value;
-  }
-
-  // btoa is available in React Native (Hermes) and Expo web.
-  const basic = btoa(`${COGNITO_CLIENT_ID}:${COGNITO_CLIENT_SECRET}`);
-  const body = `grant_type=client_credentials&scope=${encodeURIComponent(COGNITO_SCOPE)}`;
-  const res = await fetch(COGNITO_TOKEN_URL, {
+  const { hostname, path } = splitUrl(API_URL);
+  const signer = new SignatureV4({
+    service: "execute-api",
+    region: AWS_REGION,
+    credentials: creds,
+    sha256: Sha256,
+  });
+  const request = new HttpRequest({
     method: "POST",
+    protocol: "https:",
+    hostname,
+    path,
     headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      Authorization: `Basic ${basic}`,
+      "content-type": "application/json",
+      accept: "application/json",
+      host: hostname,
     },
     body,
   });
-  if (!res.ok) {
-    throw new Error("Couldn't authenticate with the kitchen service. Please try again.");
-  }
-  const json = (await res.json()) as { access_token: string; expires_in: number };
-  cachedToken = {
-    value: json.access_token,
-    expiresAt: now + (json.expires_in - 60) * 1000,
-  };
-  return cachedToken.value;
+  const { headers } = await signer.sign(request);
+  return headers as Record<string, string>;
 }
 
 /**
@@ -195,23 +242,13 @@ export async function analyzeImage(
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
   try {
-    const token = await getAccessToken();
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    };
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    }
+    const body = JSON.stringify({ images: base64Images, preferences, mode });
+    const headers = await signedHeaders(body);
 
     const response = await fetch(API_URL, {
       method: "POST",
       headers,
-      body: JSON.stringify({
-        images: base64Images,
-        preferences,
-        mode,
-      }),
+      body,
       signal: controller.signal,
     });
 
