@@ -1,0 +1,17 @@
+name: Publish production iOS update
+
+on:
+  push:
+    branches: ['main']
+    paths:
+      - 'whats-cooking/**'
+
+jobs:
+  update_ios:
+    name: Publish iOS update
+    type: update
+    environment: production
+    params:
+      channel: production
+      platform: ios
+      message: ${{ github.commit_message || 'Automated production update' }}

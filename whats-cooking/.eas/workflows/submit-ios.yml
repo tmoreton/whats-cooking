@@ -1,0 +1,17 @@
+name: Build and distribute iOS to TestFlight
+
+jobs:
+  build_ios:
+    name: Build iOS
+    type: build
+    params:
+      platform: ios
+      profile: production
+
+  testflight:
+    name: Distribute to TestFlight
+    type: testflight
+    needs: [build_ios]
+    params:
+      build_id: ${{ needs.build_ios.outputs.build_id }}
+      internal_groups: ['Internal']

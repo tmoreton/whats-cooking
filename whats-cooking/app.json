@@ -13,20 +13,29 @@
       "resizeMode": "contain",
       "backgroundColor": "#FF6B35"
     },
-    "runtimeVersion": { "policy": "appVersion" },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "updates": {
-      "url": "https://u.expo.dev/REPLACE_WITH_EAS_PROJECT_ID"
+      "url": "https://u.expo.dev/8fe4c019-2a0c-4231-a44d-188b9f9c3749"
     },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.tmoreton.whatscooking",
+      "config": {
+        "usesNonExemptEncryption": false
+      },
       "infoPlist": {
         "NSCameraUsageDescription": "What's Cooking? needs access to your camera so you can snap a photo of your fridge and get recipe suggestions."
       }
     },
     "android": {
       "package": "com.tmoreton.whatscooking",
-      "permissions": ["CAMERA"],
+      "permissions": [
+        "CAMERA",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FF6B35"
@@ -51,15 +60,21 @@
           "icon": "./assets/notification-icon.png",
           "color": "#FF6B35"
         }
-      ]
+      ],
+      "expo-asset",
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true
     },
     "extra": {
+      "router": {
+        "origin": false
+      },
       "eas": {
-        "projectId": "REPLACE_WITH_EAS_PROJECT_ID"
+        "projectId": "8fe4c019-2a0c-4231-a44d-188b9f9c3749"
       }
-    }
+    },
+    "owner": "reactnativenerd"
   }
 }

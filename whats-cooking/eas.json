@@ -19,15 +19,15 @@
     "production": {
       "autoIncrement": true,
       "channel": "production",
-      "ios": {}
+      "ios": {
+        "image": "macos-sequoia-15.6-xcode-26.0"
+      }
     }
   },
   "submit": {
     "production": {
       "ios": {
-        "ascApiKeyPath": "./asc-api-key.p8",
-        "ascApiKeyId": "$ASC_API_KEY_ID",
-        "ascApiKeyIssuerId": "$ASC_API_KEY_ISSUER_ID"
+        "ascAppId": "6805522854"
       }
     }
   }
