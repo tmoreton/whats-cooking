@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Generate branded App Store screenshots (1290x2796, 6.7") as SVG."""
-import html, os
+"""Generate branded iPhone 6.5-inch and iPad 13-inch App Store screenshots."""
+import html
+import os
 
-W, H = 1290, 2796
 FONT = "Helvetica, Arial, sans-serif"
 
 # Palette
@@ -10,13 +10,28 @@ ORANGE, ORANGE2, ORANGE_D = "#FF6B35", "#FF8A4B", "#ED551F"
 GREEN, YELLOW = "#4CAF50", "#FFC23D"
 INK, MUTED, LINE, CARD = "#1E1B18", "#6B655F", "#F0E9E3", "#F7F7F8"
 
-# Phone geometry
-PX, PW = 150, 990
-PY, PH = 900, 1760
-FRAME = 22
-SX, SY = PX + FRAME, PY + FRAME
-SW, SH = PW - 2 * FRAME, PH - 2 * FRAME
-SR = 66  # screen corner radius
+DEVICE = "iphone"
+W = H = PX = PW = PY = PH = FRAME = SX = SY = SW = SH = SR = 0
+
+
+def configure_device(device):
+    """Set canvas and device geometry for an Apple screenshot display class."""
+    global DEVICE, W, H, PX, PW, PY, PH, FRAME, SX, SY, SW, SH, SR
+    DEVICE = device
+    if device == "iphone":
+        W, H = 1284, 2778
+        PX, PW = 150, 990
+        PY, PH = 900, 1760
+        FRAME, SR = 22, 66
+    elif device == "ipad":
+        W, H = 2064, 2752
+        PX, PW = 282, 1500
+        PY, PH = 720, 2000
+        FRAME, SR = 24, 50
+    else:
+        raise ValueError(f"Unknown device: {device}")
+    SX, SY = PX + FRAME, PY + FRAME
+    SW, SH = PW - 2 * FRAME, PH - 2 * FRAME
 
 
 def esc(s):
@@ -115,11 +130,26 @@ def content_results():
              ("Broccoli", GREEN), ("Thyme", "#F5A623"), ("Sage", "#F5A623"),
              ("Carrots", GREEN), ("Lemon", GREEN)]
     csvg, cy = chips(SX + 40, SY + 290, items, SW - 80)
-    card, ch = recipe_card(SX + 40, cy + 40, SW - 80, "Garden Frittata with Herbs", 20, "Easy",
-                           [("Eggs", True), ("Spinach", True), ("Cherry tomatoes", True), ("Olive oil", False)])
-    ff = funfact_card(SX + 40, cy + 40 + ch + 40, SW - 80,
-                      ["Eggplants are technically berries —",
-                       "same family as tomatoes & peppers!"])
+    if DEVICE == "ipad":
+        column_gap = 36
+        column_w = (SW - 80 - column_gap) / 2
+        card, _ = recipe_card(
+            SX + 40, cy + 40, column_w, "Garden Frittata with Herbs", 20, "Easy",
+            [("Eggs", True), ("Spinach", True), ("Cherry tomatoes", True), ("Olive oil", False)],
+        )
+        ff = funfact_card(
+            SX + 40 + column_w + column_gap, cy + 40, column_w,
+            ["Eggplants are technically berries —", "same family as tomatoes & peppers!"],
+        )
+    else:
+        card, ch = recipe_card(
+            SX + 40, cy + 40, SW - 80, "Garden Frittata with Herbs", 20, "Easy",
+            [("Eggs", True), ("Spinach", True), ("Cherry tomatoes", True), ("Olive oil", False)],
+        )
+        ff = funfact_card(
+            SX + 40, cy + 40 + ch + 40, SW - 80,
+            ["Eggplants are technically berries —", "same family as tomatoes & peppers!"],
+        )
     return clip + hdr + csvg + card + ff + "</g>"
 
 
@@ -135,10 +165,26 @@ def content_ingredients():
 
 def content_recipes():
     clip, hdr = screen_header("3 recipes to cook", "You can make")
-    c1, h1 = recipe_card(SX + 40, SY + 290, SW - 80, "Roasted Veggie Medley", 25, "Easy",
-                         [("Broccoli", True), ("Carrots", True), ("Olive oil", False)])
-    c2, _ = recipe_card(SX + 40, SY + 290 + h1 + 34, SW - 80, "Citrus Mint Salad", 15, "Easy",
-                        [("Spinach", True), ("Lemon", True), ("Mint", True)])
+    if DEVICE == "ipad":
+        gap = 36
+        card_w = (SW - 80 - gap) / 2
+        c1, _ = recipe_card(
+            SX + 40, SY + 290, card_w, "Roasted Veggie Medley", 25, "Easy",
+            [("Broccoli", True), ("Carrots", True), ("Olive oil", False)],
+        )
+        c2, _ = recipe_card(
+            SX + 40 + card_w + gap, SY + 290, card_w, "Citrus Mint Salad", 15, "Easy",
+            [("Spinach", True), ("Lemon", True), ("Mint", True)],
+        )
+    else:
+        c1, h1 = recipe_card(
+            SX + 40, SY + 290, SW - 80, "Roasted Veggie Medley", 25, "Easy",
+            [("Broccoli", True), ("Carrots", True), ("Olive oil", False)],
+        )
+        c2, _ = recipe_card(
+            SX + 40, SY + 290 + h1 + 34, SW - 80, "Citrus Mint Salad", 15, "Easy",
+            [("Spinach", True), ("Lemon", True), ("Mint", True)],
+        )
     return clip + hdr + c1 + c2 + "</g>"
 
 
@@ -175,7 +221,7 @@ SHOTS = [
 ]
 
 
-def phone():
+def device_frame():
     return (f'<g filter="url(#shadow)">'
             f'{rrect(PX, PY, PW, PH, 90, "#111111")}'
             f'{rrect(SX, SY, SW, SH, SR, "#FFFDFB")}'
@@ -185,11 +231,16 @@ def phone():
 def caption(title, sub):
     lines = title.split("\n")
     out = []
-    ty = 320 if len(lines) == 1 else 300
+    if DEVICE == "ipad":
+        ty = 260 if len(lines) == 1 else 230
+        headline_size, line_height, sub_size = 124, 138, 52
+    else:
+        ty = 320 if len(lines) == 1 else 300
+        headline_size, line_height, sub_size = 108, 128, 44
     for ln in lines:
-        out.append(text(W / 2, ty, ln, 108, 820, "#FFFFFF", "middle"))
-        ty += 128
-    out.append(text(W / 2, ty + 20, sub, 44, 500, "rgba(255,255,255,0.92)", "middle"))
+        out.append(text(W / 2, ty, ln, headline_size, 820, "#FFFFFF", "middle"))
+        ty += line_height
+    out.append(text(W / 2, ty + 20, sub, sub_size, 500, "rgba(255,255,255,0.92)", "middle"))
     return "".join(out)
 
 
@@ -206,15 +257,18 @@ def build(name, title, sub, content_fn):
                '</filter></defs>')
     svg.append(rrect(0, 0, W, H, 0, "url(#bg)"))
     svg.append(caption(title, sub))
-    svg.append(phone())
+    svg.append(device_frame())
     svg.append(content_fn())
     svg.append("</svg>")
-    path = f"/tmp/shot-{name}.svg"
+    output_dir = f"/tmp/shots/{DEVICE}"
+    os.makedirs(output_dir, exist_ok=True)
+    path = f"{output_dir}/shot-{name}.svg"
     open(path, "w").write("".join(svg))
     return path
 
 
-os.makedirs("/tmp/shots", exist_ok=True)
-for name, title, sub, fn in SHOTS:
-    p = build(name, title, sub, fn)
-    print(p)
+for device_name in ("iphone", "ipad"):
+    configure_device(device_name)
+    for name, title, sub, fn in SHOTS:
+        p = build(name, title, sub, fn)
+        print(p)
