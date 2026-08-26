@@ -2,7 +2,7 @@
   "expo": {
     "name": "What's Cooking?",
     "slug": "whats-cooking",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "scheme": "whatscooking",
     "userInterfaceStyle": "light",
