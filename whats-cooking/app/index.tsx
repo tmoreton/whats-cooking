@@ -118,30 +118,27 @@ export default function HomeScreen() {
         </LinearGradient>
 
         <View style={styles.body}>
-          {/* Primary CTA */}
+          {/* Primary CTA — white card so it lifts off the orange header */}
           <Pressable
             onPress={openCamera}
-            style={({ pressed }) => [pressed && styles.ctaPressed]}
+            style={({ pressed }) => [
+              styles.cta,
+              shadowLg,
+              pressed && styles.ctaPressed,
+            ]}
             accessibilityRole="button"
             accessibilityLabel="Start a new scan"
           >
-            <LinearGradient
-              colors={[colors.primary, colors.primaryDark]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={[styles.cta, shadowLg]}
-            >
-              <View style={styles.ctaIconWrap}>
-                <Ionicons name="camera" size={26} color={colors.white} />
-              </View>
-              <View style={styles.ctaText}>
-                <Text style={styles.ctaTitle}>Start a scan</Text>
-                <Text style={styles.ctaSubtitle}>
-                  Fridge, pantry &amp; spices — snap as many as you like
-                </Text>
-              </View>
-              <Ionicons name="arrow-forward" size={22} color={colors.white} />
-            </LinearGradient>
+            <View style={styles.ctaIconWrap}>
+              <Ionicons name="camera" size={26} color={colors.white} />
+            </View>
+            <View style={styles.ctaText}>
+              <Text style={styles.ctaTitle}>Start a scan</Text>
+              <Text style={styles.ctaSubtitle}>
+                Fridge, pantry &amp; spices — snap as many as you like
+              </Text>
+            </View>
+            <Ionicons name="arrow-forward" size={22} color={colors.primary} />
           </Pressable>
 
           {/* Preferences */}
@@ -297,9 +294,9 @@ function PrefRow({
         value={value}
         onValueChange={onChange}
         accessibilityLabel={label}
-        trackColor={{ false: "#D9D9DE", true: colors.primary }}
+        trackColor={{ false: "#E9E9EA", true: colors.primary }}
         thumbColor={colors.white}
-        ios_backgroundColor="#D9D9DE"
+        ios_backgroundColor="#E9E9EA"
       />
     </View>
   );
@@ -347,13 +344,16 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     borderRadius: radii.lg,
     marginBottom: spacing.xl,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.cardBorder,
   },
   ctaPressed: { transform: [{ scale: 0.99 }], opacity: 0.96 },
   ctaIconWrap: {
     width: 48,
     height: 48,
     borderRadius: radii.md,
-    backgroundColor: "rgba(255,255,255,0.18)",
+    backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
     marginRight: spacing.md,
@@ -362,12 +362,12 @@ const styles = StyleSheet.create({
   ctaTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: colors.white,
+    color: colors.text,
     letterSpacing: -0.2,
   },
   ctaSubtitle: {
     fontSize: 13,
-    color: "rgba(255,255,255,0.9)",
+    color: colors.textSecondary,
     marginTop: 2,
   },
   sectionLabel: {
