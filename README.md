@@ -20,8 +20,9 @@ you can actually make.
 | `backend/` | Strands agent + AgentCore entrypoint (`main.py`). Vision → ingredients → AI-generated recipes. |
 | `proxy/` | SAM app: HTTP API + Lambda that SigV4-signs to the runtime, protected by a Cognito JWT authorizer. |
 | `whats-cooking/` | Expo (SDK 52, expo-router) iOS app. **All `npm`/`eas` commands run from here.** |
-| `docs/TESTFLIGHT.md` | Deep-dive on the CI/TestFlight setup. |
-| `.github/workflows/ios-testflight.yml` | GitHub Actions → EAS Build → TestFlight. |
+| `docs/TESTFLIGHT.md` | Deep-dive on the EAS build/update setup. |
+| `docs/PRIVACY.md` | Privacy policy (host it and use the URL in App Store Connect). |
+| `whats-cooking/.eas/workflows/` | EAS Workflows: auto OTA on push + build/submit to TestFlight. |
 
 ## What's already deployed
 
@@ -57,63 +58,51 @@ The committed `.env` already carries the API URL + Cognito config; Expo inlines
 those `EXPO_PUBLIC_*` values at build time, so there's nothing else to configure
 for the app to reach the backend.
 
-### 2. One-time EAS setup
+### 2. Log in to EAS
+
+The Expo project is already linked (`app.json` has the real `extra.eas.projectId`
+and `owner`), so there's no `eas init` step — just authenticate as the project
+owner (or a collaborator):
 
 ```bash
 npm i -g eas-cli
 eas login
-eas init                            # links to your Expo account, prints a project ID
 ```
 
-`eas init` prints a **project ID**. The quickest way to wire it everywhere is:
-
-```bash
-eas update:configure     # fills expo.extra.eas.projectId AND expo.updates.url
-```
-
-That replaces the two `REPLACE_WITH_EAS_PROJECT_ID` placeholders in `app.json`
-(`expo.extra.eas.projectId` and `expo.updates.url`) — **the build fails until
-these are real**. Then let EAS manage signing and store your ASC API key:
+One-time, let EAS manage iOS signing and store your App Store Connect API key
+(only needed if it isn't already set up on the Expo account):
 
 ```bash
 eas credentials
-# iOS → let EAS create/manage the Distribution Certificate + Provisioning Profile
+# iOS → let EAS manage the Distribution Certificate + Provisioning Profile
 # → App Store Connect API Key → upload your .p8, enter Key ID + Issuer ID
 ```
 
-With the ASC key stored in EAS, CI needs only `EXPO_TOKEN`.
+### 3. Build & submit to TestFlight
 
-### 3. Add the GitHub secret
-
-Create an Expo access token at **expo.dev → Account → Access Tokens**, then:
+CI runs on **EAS Workflows** (`whats-cooking/.eas/workflows/`) — on Expo's
+infrastructure, no Mac and no GitHub secrets required.
 
 ```bash
-gh secret set EXPO_TOKEN --repo tmoreton/whats-cooking
-# (or GitHub UI: Settings → Secrets and variables → Actions → New repository secret)
+cd whats-cooking
+eas workflow:run submit-ios.yml     # builds + distributes to TestFlight
 ```
 
-`EXPO_TOKEN` is the **only** required secret on the default path. (An alternative
-path that keeps the ASC key in GitHub secrets instead of EAS is documented in
-[`docs/TESTFLIGHT.md`](docs/TESTFLIGHT.md).)
+You can also run it from **expo.dev → your project → Workflows**. EAS builds the
+`.ipa` (bumping the build number via `autoIncrement`), submits to App Store
+Connect, and it appears in TestFlight once Apple finishes processing.
 
-### 4. Build & submit
+> Prefer a one-off without the workflow?
+> `eas build -p ios --profile production --auto-submit` from `whats-cooking/`.
 
-- **Tag a release** (recommended):
+### 4. Before the first public submission
 
-  ```bash
-  git tag v1.0.0 && git push origin v1.0.0
-  ```
-
-- **Or** GitHub → **Actions** → **iOS TestFlight** → **Run workflow**.
-
-Either triggers `eas build -p ios --profile production --non-interactive
---auto-submit` on Expo's servers (no Mac needed). EAS builds the `.ipa`, bumps
-the build number, and submits to App Store Connect — it appears in TestFlight
-once Apple finishes processing.
-
-### Build locally instead (no GitHub Actions)
-
-From `whats-cooking/`: `eas build -p ios --profile production --auto-submit`.
+In **App Store Connect** set the **Privacy Policy URL** (host
+[`docs/PRIVACY.md`](docs/PRIVACY.md) somewhere public), complete the **App
+Privacy** questionnaire (declare *Photos / User Content* used for app
+functionality, not linked to identity), and set a Support URL, category, and age
+rating. Export compliance is already answered via
+`ios.config.usesNonExemptEncryption: false` in `app.json`.
 
 ---
 
@@ -124,12 +113,19 @@ so you can push **JS/asset** changes to already-installed builds without a new
 TestFlight submission. Production builds subscribe to the `production` channel
 (`eas.json`); `runtimeVersion` uses the `appVersion` policy.
 
+**Automatic:** a push to `main` that touches `whats-cooking/**` publishes a
+production OTA via the `publish-production-update.yml` EAS Workflow (requires the
+Expo GitHub App connected to the repo).
+
+**Manual:**
+
 ```bash
 cd whats-cooking
 eas update --branch production --message "Tweak copy / fix bug"
 ```
 
-Installed apps on a matching runtime version pick up the update on next launch.
+Installed apps on a matching runtime version pick up the update on next launch
+(fully quit and reopen twice).
 
 **Caveat:** OTA updates only cover JavaScript and assets. Anything that changes
 native code — adding/upgrading a native module, bumping the Expo SDK, or editing

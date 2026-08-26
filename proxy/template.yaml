@@ -86,6 +86,11 @@ Resources:
         AllowOrigins: ['*']
         AllowHeaders: ['content-type', 'authorization']
         AllowMethods: ['POST', 'OPTIONS']
+      # Cap throughput so a leaked client credential / runaway client can't
+      # run up unbounded Bedrock cost. ~5 req/s steady, burst 10.
+      DefaultRouteSettings:
+        ThrottlingRateLimit: 5
+        ThrottlingBurstLimit: 10
       Auth:
         Authorizers:
           CognitoJwtAuthorizer:

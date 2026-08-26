@@ -1,123 +1,88 @@
-# TestFlight builds via EAS + GitHub Actions
+# TestFlight & OTA via EAS Workflows
 
-This repo ships **What's Cooking?** (Expo SDK 52, expo-router) to iOS
-TestFlight using [EAS Build](https://docs.expo.dev/build/introduction/).
-The native build runs on Expo's servers, so **no macOS runner is required** —
-GitHub Actions just triggers EAS and lets it submit to App Store Connect.
+This repo ships **What's Cooking?** (Expo SDK 52, expo-router) to iOS using
+[EAS Build](https://docs.expo.dev/build/introduction/) and
+[EAS Workflows](https://docs.expo.dev/eas/workflows/get-started/). Builds run on
+Expo's servers — **no macOS runner and no GitHub Actions secrets required.**
 
-The Expo app lives in the `whats-cooking/` subfolder. All `eas` commands below
-must be run from inside that folder.
+The Expo app lives in the `whats-cooking/` subfolder; all `eas` commands run
+from there.
 
 ---
 
-## Prerequisites (already satisfied)
+## Prerequisites
 
-- An Expo / EAS account.
+- An Expo / EAS account with access to the project (`owner: reactnativenerd`,
+  `extra.eas.projectId` are committed in `app.json`).
 - An Apple Developer Program membership.
-- An App Store Connect API key: the `.p8` file, plus its **Key ID** and
-  **Issuer ID**.
+- An App Store Connect API key (`.p8` + Key ID + Issuer ID), stored in EAS via
+  `eas credentials` (one-time). `eas.json` references the ASC app id
+  (`submit.production.ios.ascAppId`).
 
 ---
 
-## One-time setup on a fresh machine
+## The workflows (`whats-cooking/.eas/workflows/`)
+
+| File | Trigger | What it does |
+|------|---------|--------------|
+| `publish-production-update.yml` | push to `main` touching `whats-cooking/**` | Publishes an OTA JS/asset update to the `production` channel. |
+| `submit-ios.yml` | manual (`eas workflow:run`) | Builds the iOS app and distributes it to the **Internal** TestFlight group. |
+
+Automatic triggering requires the **Expo GitHub App** to be connected to this
+repo (expo.dev → project → GitHub). Without it, run the workflows manually.
+
+---
+
+## Ship a native build to TestFlight
 
 ```bash
-# 1. Install the EAS CLI
-npm i -g eas-cli
-
-# 2. Log in to your Expo account
-eas login
-
-# 3. Initialize the project (from the app subfolder)
 cd whats-cooking
-eas init
+eas login
+eas workflow:run submit-ios.yml     # or run it from expo.dev → Workflows
 ```
 
-`eas init` links this project to your Expo account and prints a **project ID**.
-Paste that value into `whats-cooking/app.json` at
-`expo.extra.eas.projectId`, replacing the placeholder:
+EAS builds the `.ipa` (build number auto-increments via `appVersionSource:
+remote`), submits to App Store Connect, and the build lands in TestFlight after
+Apple processing.
 
-```jsonc
-"extra": {
-  "eas": {
-    "projectId": "REPLACE_WITH_EAS_PROJECT_ID"  // <- paste your real ID here
-  }
-}
-```
-
-Then let EAS manage iOS signing and store your App Store Connect API key:
+One-off alternative (no workflow):
 
 ```bash
-eas credentials
+eas build -p ios --profile production --auto-submit
 ```
 
-In the interactive menu:
-- Choose **iOS** → let EAS create/manage the **Distribution Certificate** and
-  **Provisioning Profile** (EAS-managed signing is recommended).
-- Choose the **App Store Connect API Key** option and upload your `.p8`,
-  entering the **Key ID** and **Issuer ID** when prompted.
+---
 
-Once the ASC API key is stored in EAS, CI only needs `EXPO_TOKEN` — EAS supplies
-the ASC key automatically during `--auto-submit`. This is the **default** path
-used by the workflow.
+## Ship an OTA update (no rebuild)
+
+JS/asset-only changes (copy, styling, logic) can go straight to installed builds:
+
+```bash
+cd whats-cooking
+eas update --branch production --message "…"
+```
+
+…or just push to `main` and let `publish-production-update.yml` do it.
+
+**Caveat:** OTA only covers JavaScript and assets. Adding/upgrading a native
+module, bumping the Expo SDK, or changing native `app.json` config requires a new
+build — bump `version` (so `runtimeVersion` changes) and re-run `submit-ios.yml`.
 
 ---
 
-## GitHub secrets to add
+## Runtime env vars
 
-Go to **Settings → Secrets and variables → Actions → New repository secret**.
-
-### Required
-
-| Secret | Where to get it |
-|--------|-----------------|
-| `EXPO_TOKEN` | expo.dev → **Account** → **Access Tokens** → create a token |
-
-That is the **only** secret needed when the ASC API key is stored in EAS
-(default path above).
-
-### Optional — only if you do NOT store the ASC key in EAS
-
-Use these if you prefer to keep the ASC API key in GitHub instead of uploading
-it to EAS. You must also switch to the alternative steps in
-`.github/workflows/ios-testflight.yml` (they are present but commented out).
-
-| Secret | Value |
-|--------|-------|
-| `ASC_API_KEY_P8` | Base64 of the `.p8` file: `base64 -i AuthKey_XXXX.p8 \| pbcopy` |
-| `ASC_API_KEY_ID` | The App Store Connect API **Key ID** |
-| `ASC_API_KEY_ISSUER_ID` | The App Store Connect API **Issuer ID** |
-
-The workflow decodes `ASC_API_KEY_P8` to `whats-cooking/asc-api-key.p8`, and
-`eas.json`'s `submit.production.ios` block references that file plus the two env
-vars.
+`EXPO_PUBLIC_*` values come from the committed `whats-cooking/.env` and are
+inlined into the JS bundle by Expo at build time — nothing needs to be a CI
+secret. (Note: the Cognito client secret is bundled this way; fine for the beta,
+but move token issuance server-side before a broad public release.)
 
 ---
 
-## How to trigger a build
+## App Store submission checklist
 
-- **Push a version tag** (recommended for releases):
-
-  ```bash
-  git tag v1.0.0
-  git push origin v1.0.0
-  ```
-
-- **Or run it manually**: GitHub → **Actions** → **iOS TestFlight** →
-  **Run workflow**.
-
-Either trigger runs `eas build --platform ios --profile production
---non-interactive --auto-submit`. EAS builds the app, bumps the build number
-(`autoIncrement` with remote `appVersionSource`), then submits the `.ipa` to
-App Store Connect. The build shows up in TestFlight after Apple finishes
-processing.
-
----
-
-## Note on runtime environment variables
-
-Runtime config prefixed with `EXPO_PUBLIC_*` comes from the committed
-`whats-cooking/.env` file (already in the repo). Expo **inlines** these values
-into the JS bundle at build time, so they do **not** need to be added as GitHub
-secrets. Nothing app-config-wise needs to be a repository secret beyond the ones
-listed above.
+- **Privacy Policy URL** — host [`PRIVACY.md`](PRIVACY.md) publicly and set the URL.
+- **App Privacy** questionnaire — declare *Photos / User Content* used for app
+  functionality, not linked to identity.
+- Support URL, category, age rating.
+- Export compliance is pre-answered via `ios.config.usesNonExemptEncryption: false`.
