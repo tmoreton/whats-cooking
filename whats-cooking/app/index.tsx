@@ -13,14 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import {
-  colors,
-  radii,
-  shadow,
-  shadowLg,
-  spacing,
-  typography,
-} from "@/constants/theme";
+import { colors, radii, spacing, typography } from "@/constants/theme";
 import {
   clearRecentScans,
   DEFAULT_PREFERENCES,
@@ -45,6 +38,8 @@ function formatWhen(ts: number): string {
 }
 
 type IonName = React.ComponentProps<typeof Ionicons>["name"];
+
+const SWITCH_TRACK = { false: "#E9E9EA", true: colors.primary };
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
@@ -118,32 +113,66 @@ export default function HomeScreen() {
         </LinearGradient>
 
         <View style={styles.body}>
-          {/* Primary CTA — white card so it lifts off the orange header */}
-          <Pressable
-            onPress={openCamera}
-            style={({ pressed }) => [
-              styles.cta,
-              shadowLg,
-              pressed && styles.ctaPressed,
-            ]}
-            accessibilityRole="button"
-            accessibilityLabel="Start a new scan"
-          >
-            <View style={styles.ctaIconWrap}>
-              <Ionicons name="camera" size={26} color={colors.white} />
+          {/* Scan panel — prominent CTA with the Surprise-me toggle attached */}
+          <View style={styles.scanPanel}>
+            <Pressable
+              onPress={openCamera}
+              style={({ pressed }) => pressed && styles.pressed}
+              accessibilityRole="button"
+              accessibilityLabel="Start a new scan"
+            >
+              <LinearGradient
+                colors={[colors.primary, colors.primaryDark]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.scanButton}
+              >
+                <View style={styles.scanIconWrap}>
+                  <Ionicons name="camera" size={30} color={colors.white} />
+                </View>
+                <View style={styles.scanText}>
+                  <Text style={styles.scanTitle}>Start a scan</Text>
+                  <Text style={styles.scanSubtitle}>
+                    Snap your fridge, pantry &amp; spices
+                  </Text>
+                </View>
+                <Ionicons name="arrow-forward" size={24} color={colors.white} />
+              </LinearGradient>
+            </Pressable>
+
+            <View style={styles.surpriseRow}>
+              <View style={styles.surpriseIconWrap}>
+                <Ionicons
+                  name="sparkles"
+                  size={17}
+                  color={mode === "surprise" ? colors.primary : colors.textSecondary}
+                />
+              </View>
+              <View style={styles.prefLabelWrap}>
+                <Text style={styles.prefLabel}>Surprise me</Text>
+                <Text style={styles.prefSublabel}>
+                  Bolder, more creative suggestions
+                </Text>
+              </View>
+              <Switch
+                value={mode === "surprise"}
+                onValueChange={updateMode}
+                accessibilityLabel="Surprise me"
+                trackColor={SWITCH_TRACK}
+                thumbColor={colors.white}
+                ios_backgroundColor={SWITCH_TRACK.false}
+              />
             </View>
-            <View style={styles.ctaText}>
-              <Text style={styles.ctaTitle}>Start a scan</Text>
-              <Text style={styles.ctaSubtitle}>
-                Fridge, pantry &amp; spices — snap as many as you like
-              </Text>
-            </View>
-            <Ionicons name="arrow-forward" size={22} color={colors.primary} />
-          </Pressable>
+          </View>
 
           {/* Preferences */}
-          <SectionLabel icon="options-outline" text="Preferences" />
-          <View style={[styles.card, shadow]}>
+          <View style={styles.card}>
+            <View style={styles.cardHeader}>
+              <View style={styles.cardHeaderIcon}>
+                <Ionicons name="options-outline" size={16} color={colors.primary} />
+              </View>
+              <Text style={styles.cardHeaderTitle}>Dietary preferences</Text>
+            </View>
             <PrefRow
               label="Vegetarian"
               icon="leaf-outline"
@@ -165,22 +194,14 @@ export default function HomeScreen() {
             />
           </View>
 
-          <View style={[styles.card, styles.cardSpaced, shadow]}>
-            <PrefRow
-              label="Surprise me"
-              sublabel="Bolder, more creative suggestions"
-              icon="sparkles-outline"
-              value={mode === "surprise"}
-              onChange={updateMode}
-              last
-            />
-          </View>
-
           {/* Recent scans */}
           {recent.length > 0 ? (
             <View style={styles.recentSection}>
               <View style={styles.recentHeader}>
-                <SectionLabel icon="time-outline" text="Recent scans" inline />
+                <View style={styles.sectionLabel}>
+                  <Ionicons name="time-outline" size={14} color={colors.textSecondary} />
+                  <Text style={styles.sectionLabelText}>Recent scans</Text>
+                </View>
                 <Pressable
                   onPress={clearRecent}
                   hitSlop={8}
@@ -196,8 +217,7 @@ export default function HomeScreen() {
                   onPress={() => openRecent(scan)}
                   style={({ pressed }) => [
                     styles.recentRow,
-                    shadow,
-                    pressed && styles.recentRowPressed,
+                    pressed && styles.pressed,
                   ]}
                   accessibilityRole="button"
                 >
@@ -226,13 +246,12 @@ export default function HomeScreen() {
             </View>
           ) : (
             <View style={styles.recentSection}>
-              <SectionLabel icon="time-outline" text="Recent scans" />
-              <View style={[styles.emptyRecent, shadow]}>
-                <Ionicons
-                  name="images-outline"
-                  size={26}
-                  color={colors.textMuted}
-                />
+              <View style={styles.sectionLabel}>
+                <Ionicons name="time-outline" size={14} color={colors.textSecondary} />
+                <Text style={styles.sectionLabelText}>Recent scans</Text>
+              </View>
+              <View style={styles.emptyRecent}>
+                <Ionicons name="images-outline" size={26} color={colors.textMuted} />
                 <Text style={styles.emptyRecentText}>
                   Your recent scans will show up here.
                 </Text>
@@ -245,34 +264,15 @@ export default function HomeScreen() {
   );
 }
 
-function SectionLabel({
-  icon,
-  text,
-  inline = false,
-}: {
-  icon: IonName;
-  text: string;
-  inline?: boolean;
-}) {
-  return (
-    <View style={[styles.sectionLabel, inline && { marginBottom: 0 }]}>
-      <Ionicons name={icon} size={14} color={colors.textSecondary} />
-      <Text style={styles.sectionLabelText}>{text}</Text>
-    </View>
-  );
-}
-
 function PrefRow({
   label,
   icon,
-  sublabel,
   value,
   onChange,
   last,
 }: {
   label: string;
   icon: IonName;
-  sublabel?: string;
   value: boolean;
   onChange: (v: boolean) => void;
   last?: boolean;
@@ -288,15 +288,14 @@ function PrefRow({
       </View>
       <View style={styles.prefLabelWrap}>
         <Text style={styles.prefLabel}>{label}</Text>
-        {sublabel ? <Text style={styles.prefSublabel}>{sublabel}</Text> : null}
       </View>
       <Switch
         value={value}
         onValueChange={onChange}
         accessibilityLabel={label}
-        trackColor={{ false: "#E9E9EA", true: colors.primary }}
+        trackColor={SWITCH_TRACK}
         thumbColor={colors.white}
-        ios_backgroundColor="#E9E9EA"
+        ios_backgroundColor={SWITCH_TRACK.false}
       />
     </View>
   );
@@ -309,7 +308,7 @@ const styles = StyleSheet.create({
   scroll: { flexGrow: 1 },
   header: {
     paddingHorizontal: spacing.xl,
-    paddingBottom: spacing.xxl + spacing.md,
+    paddingBottom: spacing.xxl,
     borderBottomLeftRadius: radii.xl,
     borderBottomRightRadius: radii.xl,
   },
@@ -336,57 +335,92 @@ const styles = StyleSheet.create({
   },
   body: {
     padding: spacing.lg,
-    marginTop: -spacing.xl,
+    marginTop: spacing.lg,
   },
-  cta: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: spacing.lg,
+  pressed: { opacity: 0.94 },
+
+  // Scan panel
+  scanPanel: {
     borderRadius: radii.lg,
-    marginBottom: spacing.xl,
-    backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.cardBorder,
+    backgroundColor: colors.surface,
+    overflow: "hidden",
+    marginBottom: spacing.xl,
   },
-  ctaPressed: { transform: [{ scale: 0.99 }], opacity: 0.96 },
-  ctaIconWrap: {
-    width: 48,
-    height: 48,
+  scanButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: spacing.xl,
+    paddingHorizontal: spacing.lg,
+  },
+  scanIconWrap: {
+    width: 56,
+    height: 56,
     borderRadius: radii.md,
-    backgroundColor: colors.primary,
+    backgroundColor: "rgba(255,255,255,0.2)",
     alignItems: "center",
     justifyContent: "center",
     marginRight: spacing.md,
   },
-  ctaText: { flex: 1 },
-  ctaTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: colors.text,
-    letterSpacing: -0.2,
+  scanText: { flex: 1 },
+  scanTitle: {
+    fontSize: 22,
+    fontWeight: "800",
+    color: colors.white,
+    letterSpacing: -0.4,
   },
-  ctaSubtitle: {
-    fontSize: 13,
-    color: colors.textSecondary,
+  scanSubtitle: {
+    fontSize: 14,
+    color: "rgba(255,255,255,0.92)",
     marginTop: 2,
   },
-  sectionLabel: {
+  surpriseRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: spacing.sm,
-    gap: spacing.xs,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md + 2,
+    borderTopWidth: 1,
+    borderTopColor: colors.divider,
   },
-  sectionLabelText: {
-    ...typography.label,
+  surpriseIconWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: colors.card,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: spacing.md,
   },
+
+  // Cards
   card: {
     backgroundColor: colors.surface,
     borderRadius: radii.lg,
     borderWidth: 1,
     borderColor: colors.cardBorder,
     paddingHorizontal: spacing.lg,
+    marginBottom: spacing.xl,
   },
-  cardSpaced: { marginTop: spacing.lg },
+  cardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.divider,
+    gap: spacing.sm,
+  },
+  cardHeaderIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: colors.primarySoft,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  cardHeaderTitle: {
+    ...typography.subheading,
+  },
   prefRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -414,12 +448,22 @@ const styles = StyleSheet.create({
     ...typography.caption,
     marginTop: 2,
   },
-  recentSection: { marginTop: spacing.xl },
+
+  // Recent
+  recentSection: { marginBottom: spacing.sm },
   recentHeader: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     marginBottom: spacing.sm,
+  },
+  sectionLabel: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+  },
+  sectionLabelText: {
+    ...typography.label,
   },
   clearText: {
     ...typography.label,
@@ -435,7 +479,6 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     marginBottom: spacing.sm,
   },
-  recentRowPressed: { opacity: 0.85 },
   recentIconWrap: {
     width: 40,
     height: 40,
