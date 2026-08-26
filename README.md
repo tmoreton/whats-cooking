@@ -50,7 +50,7 @@ Connect API key (`.p8` + Key ID + Issuer ID).
 ### 1. Clone and install
 
 ```bash
-git clone https://github.com/tmoreton/whats-cooking.git
+git clone https://github.com/tmoreton/whats-cooking-app.git
 cd whats-cooking/whats-cooking      # the Expo app subfolder
 npm ci
 npx tsc --noEmit                    # optional sanity check

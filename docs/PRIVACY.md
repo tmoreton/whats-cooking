@@ -59,7 +59,7 @@ personal information from children under 13.
 ## Contact and privacy requests
 
 For a privacy question or request, contact the developer through the
-[GitHub support page](https://github.com/tmoreton/whats-cooking/issues/new) or
+[GitHub support page](https://github.com/tmoreton/whats-cooking-app/issues/new) or
 [developer profile](https://github.com/tmoreton).
 
 ## Changes
