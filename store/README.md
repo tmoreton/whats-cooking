@@ -1,5 +1,10 @@
 # App Store assets
 
+## Metadata (`metadata/en-US/`)
+
+The English (U.S.) App Store name, subtitle, keywords, promotional text, and
+description live here so the public listing copy remains version-controlled.
+
 ## Screenshots (`screenshots/`)
 
 Four branded marketing screenshots at **1290 × 2796** — the iPhone 6.7"
