@@ -139,23 +139,7 @@
     width: 100%; height: 100%; border-radius: 36px; background: var(--bg);
     overflow: hidden; display: flex; flex-direction: column;
   }
-  .screen-head { background: linear-gradient(140deg, var(--orange), #FF9138); padding: 56px 22px 22px; color: #fff; }
-  .screen-head .kicker { font-size: 12px; opacity: .92; font-weight: 600; }
-  .screen-head .title { font-size: 22px; font-weight: 800; margin-top: 2px; letter-spacing: -0.02em; }
-  .screen-body { padding: 20px; flex: 1; }
-  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
-  .chip {
-    display: inline-flex; align-items: center; gap: 7px; background: #fff;
-    border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px;
-    font-size: 12.5px; font-weight: 600; color: var(--ink); box-shadow: var(--shadow-sm);
-  }
-  .chip .c { width: 8px; height: 8px; border-radius: 50%; }
-  .rc { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 16px; box-shadow: var(--shadow-sm); }
-  .rc h4 { font-size: 16px; font-weight: 750; margin-bottom: 10px; }
-  .badges { display: flex; gap: 8px; }
-  .badge { font-size: 11.5px; font-weight: 650; padding: 5px 10px; border-radius: 999px; }
-  .badge.time { background: var(--tint); color: var(--orange-dark); }
-  .badge.easy { background: rgba(46,158,91,0.12); color: var(--green); }
+  .screen img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
 
   /* ── How it works ────────────────────────────────── */
   .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
@@ -279,24 +263,7 @@
     <div class="phone-col">
       <div class="phone">
         <div class="screen">
-          <div class="screen-head">
-            <div class="kicker">I spotted…</div>
-            <div class="title">12 ingredients 🎉</div>
-          </div>
-          <div class="screen-body">
-            <div class="chips">
-              <span class="chip"><span class="c" style="background:var(--green)"></span>Spinach</span>
-              <span class="chip"><span class="c" style="background:var(--green)"></span>Cherry tomatoes</span>
-              <span class="chip"><span class="c" style="background:var(--green)"></span>Eggs</span>
-              <span class="chip"><span class="c" style="background:#F5A623"></span>Thyme</span>
-              <span class="chip"><span class="c" style="background:var(--green)"></span>Broccoli</span>
-              <span class="chip"><span class="c" style="background:#F5A623"></span>Sage</span>
-            </div>
-            <div class="rc">
-              <h4>Garden Frittata with Herbs</h4>
-              <div class="badges"><span class="badge time">⏱ 20 min</span><span class="badge easy">Easy</span></div>
-            </div>
-          </div>
+          <img src="./assets/app-home.png" alt="What's Cooking? app home screen with a big camera button to start a scan" />
         </div>
       </div>
     </div>
