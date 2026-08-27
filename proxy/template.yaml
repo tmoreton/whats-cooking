@@ -2,9 +2,10 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
   Authenticated HTTP API + Lambda proxy for the "What's Cooking?" app. The proxy
-  SigV4-signs to the AgentCore runtime. The public route uses AWS_IAM auth; the
-  app obtains short-lived guest credentials from a Cognito Identity Pool and
-  SigV4-signs its requests — so no long-lived secret ships in the app.
+  SigV4-signs to the AgentCore runtime. During the auth migration the API serves
+  two routes: legacy `POST /invocations` (AWS_IAM + Cognito Identity Pool guest
+  creds) for already-shipped app builds, and `POST /v1/invocations` (Cognito User
+  Pool JWT authorizer) for new builds that sign users in.
 
 Parameters:
   AgentRuntimeArn:
@@ -48,14 +49,78 @@ Resources:
         ThrottlingRateLimit: 5
         ThrottlingBurstLimit: 10
       Auth:
-        # AWS_IAM: callers must SigV4-sign with (guest) credentials.
+        # Two auth schemes during the migration:
+        #  - AWS_IAM: legacy route, callers SigV4-sign with guest creds.
+        #  - CognitoJwt: new route, callers send a User Pool ID token as
+        #    `Authorization: Bearer <token>`. The audience is the app client id.
         EnableIamAuthorizer: true
-        DefaultAuthorizer: AWS_IAM
+        Authorizers:
+          CognitoJwt:
+            IdentitySource: '$request.header.Authorization'
+            JwtConfiguration:
+              issuer: !Sub 'https://cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}'
+              audience:
+                - !Ref UserPoolClient
+        # No DefaultAuthorizer: each route sets its own explicitly below.
       AccessLogSettings:
         DestinationArn: !GetAtt ApiAccessLogs.Arn
         Format: '{"requestId":"$context.requestId","ip":"$context.identity.sourceIp","routeKey":"$context.routeKey","status":"$context.status","protocol":"$context.protocol","responseLatency":"$context.responseLatency","authError":"$context.authorizer.error"}'
 
-  # ---- Auth: Cognito Identity Pool with guest (unauthenticated) access ----
+  # ---- Auth: Cognito User Pool (email + password, self sign-up) ----
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Sub '${AWS::StackName}-users'
+      # Sign in with email address as the username.
+      UsernameAttributes: [email]
+      AutoVerifiedAttributes: [email]
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireUppercase: true
+          RequireLowercase: true
+          RequireNumbers: true
+          RequireSymbols: false
+      # Email a 6-digit code for both sign-up confirmation and password reset.
+      VerificationMessageTemplate:
+        DefaultEmailOption: CONFIRM_WITH_CODE
+      AccountRecoverySetting:
+        RecoveryMechanisms:
+          - Name: verified_email
+            Priority: 1
+      UserAttributeUpdateSettings:
+        AttributesRequireVerificationBeforeUpdate: [email]
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: false
+      EmailConfiguration:
+        # Cognito's built-in email (low daily quota; fine for testing). Switch to
+        # SES (DEVELOPER) for production sending volume.
+        EmailSendingAccount: COGNITO_DEFAULT
+
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: !Sub '${AWS::StackName}-app'
+      UserPoolId: !Ref UserPool
+      # Public client (mobile app): no client secret.
+      GenerateSecret: false
+      ExplicitAuthFlows:
+        - ALLOW_USER_PASSWORD_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+      # Don't leak whether an email is registered on failed sign-in / lookups.
+      PreventUserExistenceErrors: ENABLED
+      AccessTokenValidity: 1
+      IdTokenValidity: 1
+      RefreshTokenValidity: 30
+      TokenValidityUnits:
+        AccessToken: hours
+        IdToken: hours
+        RefreshToken: days
+
+  # ---- Legacy auth: Cognito Identity Pool with guest (unauthenticated) access.
+  # Kept so already-shipped app builds (which SigV4-sign as a guest against the
+  # AWS_IAM route) keep working until they're retired. Remove once all clients
+  # are on the JWT route. ----
   IdentityPool:
     Type: AWS::Cognito::IdentityPool
     Properties:
@@ -85,7 +150,7 @@ Resources:
             Statement:
               - Effect: Allow
                 Action: execute-api:Invoke
-                # Least privilege: only the POST /invocations route of this API.
+                # Least privilege: only the legacy POST /invocations route.
                 Resource: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ProxyApi}/*/POST/invocations'
 
   IdentityPoolRoleAttachment:
@@ -114,6 +179,7 @@ Resources:
                 - !Ref AgentRuntimeArn
                 - !Sub '${AgentRuntimeArn}/*'
       Events:
+        # Legacy route for already-shipped builds: SigV4 guest creds (AWS_IAM).
         Invoke:
           Type: HttpApi
           Properties:
@@ -122,6 +188,15 @@ Resources:
             Method: POST
             Auth:
               Authorizer: AWS_IAM
+        # New route for builds that sign users in: Cognito User Pool JWT.
+        InvokeJwt:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref ProxyApi
+            Path: /v1/invocations
+            Method: POST
+            Auth:
+              Authorizer: CognitoJwt
 
   RecipeProxyLogGroup:
     Type: AWS::Logs::LogGroup
@@ -131,10 +206,19 @@ Resources:
 
 Outputs:
   ApiUrl:
-    Description: EXPO_PUBLIC_API_URL
+    Description: EXPO_PUBLIC_API_URL for NEW (JWT) builds — POST /v1/invocations
+    Value: !Sub 'https://${ProxyApi}.execute-api.${AWS::Region}.amazonaws.com/v1/invocations'
+  LegacyApiUrl:
+    Description: Legacy AWS_IAM route used by already-shipped builds — POST /invocations
     Value: !Sub 'https://${ProxyApi}.execute-api.${AWS::Region}.amazonaws.com/invocations'
+  UserPoolId:
+    Description: EXPO_PUBLIC_USER_POOL_ID
+    Value: !Ref UserPool
+  UserPoolClientId:
+    Description: EXPO_PUBLIC_USER_POOL_CLIENT_ID
+    Value: !Ref UserPoolClient
   IdentityPoolId:
-    Description: EXPO_PUBLIC_IDENTITY_POOL_ID
+    Description: Legacy Cognito Identity Pool id (guest creds for old builds)
     Value: !Ref IdentityPool
   AwsRegion:
     Description: EXPO_PUBLIC_AWS_REGION

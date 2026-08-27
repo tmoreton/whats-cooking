@@ -1,162 +1,44 @@
-import { HttpRequest } from "@aws-sdk/protocol-http";
-import { SignatureV4 } from "@aws-sdk/signature-v4";
-import { Sha256 } from "@aws-crypto/sha256-js";
-import {
-  DietaryPreferences,
-  RecipeResponse,
-  ScanMode,
-} from "@/types/recipe";
+import { RecipeResponse, DietaryPreferences, ScanMode } from "@/types/recipe";
+import { getIdToken } from "@/services/auth";
 
 /**
  * Backend connection, read from Expo public env vars (see `.env`).
  * `EXPO_PUBLIC_*` values are inlined into the client bundle at build time.
- * None of these are secrets: the Identity Pool id is designed to be public.
+ * None of these are secrets.
  */
 export const AWS_REGION = process.env.EXPO_PUBLIC_AWS_REGION ?? "us-east-1";
 export const AGENT_RUNTIME_ARN = process.env.EXPO_PUBLIC_AGENT_RUNTIME_ARN ?? "";
-const IDENTITY_POOL_ID = process.env.EXPO_PUBLIC_IDENTITY_POOL_ID ?? "";
 
 const API_URL =
   process.env.EXPO_PUBLIC_API_URL ??
   (__DEV__ ? "http://localhost:8080/invocations" : "");
 
 /**
- * Auth: Cognito Identity Pool guest credentials + SigV4.
+ * Auth: Cognito User Pool JWT.
  *
- * The API route uses AWS_IAM auth. The app holds NO long-lived secret — it
- * fetches short-lived AWS credentials for an anonymous ("guest") identity from
- * the public Identity Pool id, then SigV4-signs each request. Creds are cached
- * until ~2 min before expiry.
+ * The user signs in (see `services/auth.ts`) and we send their ID token as an
+ * `Authorization: Bearer <token>` header. API Gateway's JWT authorizer
+ * validates it before invoking the Lambda. Tokens are refreshed transparently
+ * by `getIdToken()`.
  */
-type GuestCreds = {
-  accessKeyId: string;
-  secretAccessKey: string;
-  sessionToken: string;
-};
-
-type CognitoCredentialsResponse = {
-  Credentials?: {
-    AccessKeyId?: string;
-    SecretKey?: string;
-    SessionToken?: string;
-    Expiration?: number | string;
+async function authHeaders(): Promise<Record<string, string>> {
+  const headers: Record<string, string> = {
+    "content-type": "application/json",
+    accept: "application/json",
   };
-};
-
-const COGNITO_IDENTITY_URL =
-  `https://cognito-identity.${AWS_REGION}.amazonaws.com/`;
-
-async function cognitoIdentityRequest<T>(
-  operation: "GetId" | "GetCredentialsForIdentity",
-  body: Record<string, string>
-): Promise<T> {
-  const response = await fetch(COGNITO_IDENTITY_URL, {
-    method: "POST",
-    headers: {
-      accept: "application/json",
-      "content-type": "application/x-amz-json-1.1",
-      "x-amz-target": `AWSCognitoIdentityService.${operation}`,
-    },
-    body: JSON.stringify(body),
-  });
-
-  if (!response.ok) {
-    throw new Error(
-      "Couldn't authenticate with the kitchen service. Please try again."
-    );
-  }
-
-  return (await response.json()) as T;
+  const token = await getIdToken();
+  if (token) headers.authorization = `Bearer ${token}`;
+  return headers;
 }
 
-let cachedCreds: { value: GuestCreds; expiresAt: number } | null = null;
-let cachedIdentityId: string | null = null;
-
-async function getGuestCredentials(): Promise<GuestCreds | null> {
-  if (!IDENTITY_POOL_ID) return null; // e.g. local `agentcore dev`, no signing
-  const now = Date.now();
-  if (cachedCreds && cachedCreds.expiresAt > now) return cachedCreds.value;
-
-  if (!cachedIdentityId) {
-    const { IdentityId } = await cognitoIdentityRequest<{ IdentityId?: string }>(
-      "GetId",
-      { IdentityPoolId: IDENTITY_POOL_ID }
-    );
-    cachedIdentityId = IdentityId ?? null;
+/** Thrown when the API rejects our token (expired/invalid session). */
+export class UnauthorizedError extends Error {
+  constructor() {
+    super("Your session has expired. Please sign in again.");
+    this.name = "UnauthorizedError";
   }
-  if (!cachedIdentityId) {
-    throw new Error("Couldn't reach the kitchen service. Please try again.");
-  }
-
-  const { Credentials } = await cognitoIdentityRequest<CognitoCredentialsResponse>(
-    "GetCredentialsForIdentity",
-    { IdentityId: cachedIdentityId }
-  );
-  if (
-    !Credentials?.AccessKeyId ||
-    !Credentials.SecretKey ||
-    !Credentials.SessionToken
-  ) {
-    throw new Error("Couldn't authenticate with the kitchen service. Please try again.");
-  }
-
-  const value: GuestCreds = {
-    accessKeyId: Credentials.AccessKeyId,
-    secretAccessKey: Credentials.SecretKey,
-    sessionToken: Credentials.SessionToken,
-  };
-  const rawExpiration = Credentials.Expiration;
-  const parsedExpiration =
-    typeof rawExpiration === "number"
-      ? rawExpiration * 1000
-      : typeof rawExpiration === "string"
-        ? Date.parse(rawExpiration)
-        : Number.NaN;
-  const expMs = Number.isFinite(parsedExpiration)
-    ? parsedExpiration
-    : now + 3_000_000;
-  cachedCreds = { value, expiresAt: expMs - 120_000 };
-  return value;
 }
 
-// Parse host/path without relying on RN's partial URL implementation.
-function splitUrl(u: string): { hostname: string; path: string } {
-  const m = u.match(/^https?:\/\/([^/]+)(\/.*)?$/);
-  return { hostname: m?.[1] ?? "", path: m?.[2] ?? "/" };
-}
-
-/**
- * SigV4-sign a JSON POST to the API. Returns the headers to fetch with. The
- * `body` must be the exact string sent (the signature covers its hash). When
- * no Identity Pool is configured, returns plain headers (local dev).
- */
-async function signedHeaders(body: string): Promise<Record<string, string>> {
-  const creds = await getGuestCredentials();
-  if (!creds) {
-    return { "content-type": "application/json", accept: "application/json" };
-  }
-  const { hostname, path } = splitUrl(API_URL);
-  const signer = new SignatureV4({
-    service: "execute-api",
-    region: AWS_REGION,
-    credentials: creds,
-    sha256: Sha256,
-  });
-  const request = new HttpRequest({
-    method: "POST",
-    protocol: "https:",
-    hostname,
-    path,
-    headers: {
-      "content-type": "application/json",
-      accept: "application/json",
-      host: hostname,
-    },
-    body,
-  });
-  const { headers } = await signer.sign(request);
-  return headers as Record<string, string>;
-}
 
 /**
  * Flip to `true` to demo the app with no backend running — analyzeImage will
@@ -280,7 +162,7 @@ export async function analyzeImage(
 
   try {
     const body = JSON.stringify({ images: base64Images, preferences, mode });
-    const headers = await signedHeaders(body);
+    const headers = await authHeaders();
 
     const response = await fetch(API_URL, {
       method: "POST",
@@ -288,6 +170,10 @@ export async function analyzeImage(
       body,
       signal: controller.signal,
     });
+
+    if (response.status === 401 || response.status === 403) {
+      throw new UnauthorizedError();
+    }
 
     if (!response.ok) {
       throw new Error(
@@ -298,6 +184,9 @@ export async function analyzeImage(
     const data = (await response.json()) as RecipeResponse;
     return data;
   } catch (err: unknown) {
+    if (err instanceof UnauthorizedError) {
+      throw err;
+    }
     if (err instanceof Error && err.name === "AbortError") {
       throw new Error(
         "That took a little too long — check your connection and try again."

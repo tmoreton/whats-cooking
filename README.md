@@ -8,8 +8,8 @@ you can actually make.
 ┌──────────────────────┐   HTTPS + JWT   ┌───────────────────┐   SigV4   ┌────────────────────────┐
 │ Expo iOS app         │ ──────────────► │ API Gateway +     │ ────────► │ AgentCore runtime       │
 │ (whats-cooking/)     │                 │ Lambda proxy      │           │ Strands + Claude vision │
-│ camera → images[]    │ ◄────────────── │ AWS_IAM auth      │ ◄──────── │ (backend/)              │
-│ recipe cards         │  RecipeResponse │ Cognito authorizer│           │ generates recipes       │
+│ camera → images[]    │ ◄────────────── │ Cognito User Pool │ ◄──────── │ (backend/)              │
+│ recipe cards         │  RecipeResponse │ JWT authorizer    │           │ generates recipes       │
 └──────────────────────┘                 └───────────────────┘           └────────────────────────┘
 ```
 
@@ -18,7 +18,7 @@ you can actually make.
 | Path | What it is |
 |------|-----------|
 | `backend/` | Strands agent + AgentCore entrypoint (`main.py`). Vision → ingredients → AI-generated recipes. |
-| `proxy/` | SAM app: AWS_IAM-protected HTTP API + Lambda that SigV4-signs requests to the runtime. |
+| `proxy/` | SAM app: Cognito User Pool + JWT-protected HTTP API + Lambda that SigV4-signs requests to the runtime. |
 | `whats-cooking/` | Expo (SDK 52, expo-router) iOS app. **All `npm`/`eas` commands run from here.** |
 | `store/` | App Store metadata and correctly sized iPhone/iPad screenshots. |
 | `docs/` | GitHub Pages marketing, support, and privacy site. |
@@ -37,7 +37,7 @@ build on another computer you normally **only touch the frontend** — you do
 |----------|-------|
 | AgentCore runtime | `arn:aws:bedrock-agentcore:us-east-1:253170388727:runtime/whats_cooking-iik9UNDwCW` |
 | Proxy API | `https://odrc67iamk.execute-api.us-east-1.amazonaws.com/invocations` |
-| Auth | API is `AWS_IAM`; app uses Cognito **Identity Pool** guest creds + SigV4 (no secret bundled) |
+| Auth | Cognito **User Pool** (email + password); app sends the ID token as `Authorization: Bearer <token>` to the API's JWT authorizer |
 
 ---
 
@@ -168,16 +168,24 @@ cd backend && .venv/bin/agentcore destroy
 
 ## Security notes
 
-- The proxy endpoint uses **`AWS_IAM` auth** — every request must be SigV4-signed
-  (unsigned requests get 403). **No long-lived secret ships in the app:** it
-  fetches short-lived guest credentials from a public Cognito **Identity Pool**
-  and signs with those. The guest IAM role is scoped to only `execute-api:Invoke`
-  on the `POST /invocations` route, and the API is throttled (5 req/s, burst 10).
+- **New builds** call `POST /v1/invocations`, protected by a **Cognito User Pool
+  JWT authorizer** — every request must carry a valid ID token as
+  `Authorization: Bearer <token>` (unauthenticated requests get 401). Users sign
+  up (email + password, verified by an emailed code) and sign in; the app stores
+  the returned tokens and refreshes them transparently.
+- **Legacy route (`POST /invocations`, AWS_IAM + Cognito Identity Pool guest
+  creds)** is retained during the migration for previously-shipped builds. Note:
+  the original Identity Pool was replaced during the auth migration, so pre-existing
+  installs are actually migrated to the JWT flow via an OTA update (`eas update`),
+  not the guest route. **Remove the legacy route + Identity Pool once all installs
+  have updated.**
+- The API is throttled (5 req/s, burst 10). **No long-lived secret ships in the
+  app:** the User Pool app client is a public client with no secret, and the ID
+  token is short-lived (1h) with a refresh token.
 - Least-privilege IAM, access logging, and 14-day log retention (API, Lambda, and
   the AgentCore runtime log group) are configured.
-- Guest access means anyone can obtain creds and call the (throttled) API. To
-  restrict the API to genuine instances of *your* app, add Apple **App Attest**
-  before a broad public launch.
+- Cognito's built-in email sender has a low daily quota — fine for testing. For a
+  broad public launch, switch the User Pool `EmailConfiguration` to SES.
 
 ## License
 

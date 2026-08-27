@@ -15,6 +15,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router, useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { colors, radii, spacing, typography } from "@/constants/theme";
+import { useAuth } from "@/components/AuthProvider";
 import {
   clearRecentScans,
   DEFAULT_PREFERENCES,
@@ -42,6 +43,7 @@ type IonName = React.ComponentProps<typeof Ionicons>["name"];
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
+  const { session, signOut } = useAuth();
   const [prefs, setPrefs] = useState<DietaryPreferences>(DEFAULT_PREFERENCES);
   const [mode, setMode] = useState<ScanMode>("normal");
   const [recent, setRecent] = useState<RecentScan[]>([]);
@@ -290,6 +292,33 @@ export default function HomeScreen() {
             >
               <Text style={styles.modalDoneText}>Done</Text>
             </Pressable>
+
+            {session ? (
+              <View style={styles.accountSection}>
+                <Text style={styles.accountEmail} numberOfLines={1}>
+                  Signed in as {session.email}
+                </Text>
+                <Pressable
+                  onPress={() => {
+                    setPrefsOpen(false);
+                    void signOut();
+                  }}
+                  style={({ pressed }) => [
+                    styles.signOutButton,
+                    pressed && styles.pressed,
+                  ]}
+                  accessibilityRole="button"
+                  accessibilityLabel="Sign out"
+                >
+                  <Ionicons
+                    name="log-out-outline"
+                    size={18}
+                    color={colors.textSecondary}
+                  />
+                  <Text style={styles.signOutText}>Sign out</Text>
+                </Pressable>
+              </View>
+            ) : null}
           </Pressable>
         </Pressable>
       </Modal>
@@ -476,6 +505,30 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontSize: 16,
     fontWeight: "700",
+  },
+  accountSection: {
+    marginTop: spacing.lg,
+    paddingTop: spacing.lg,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.divider,
+    alignItems: "center",
+    gap: spacing.md,
+  },
+  accountEmail: {
+    fontSize: 13,
+    color: colors.textSecondary,
+  },
+  signOutButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.lg,
+  },
+  signOutText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: colors.textSecondary,
   },
   prefRow: {
     flexDirection: "row",
