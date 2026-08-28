@@ -24,3 +24,6 @@ proxy/.aws-sam/
 # ---- Logs / misc ----
 *.log
 .DS_Store
+
+# Agent CLI internal session/transcript data — not project code
+.agent/
