@@ -71,6 +71,11 @@ Resources:
     Type: AWS::Cognito::UserPool
     Properties:
       UserPoolName: !Sub '${AWS::StackName}-users'
+      # Tag added to force CloudFormation to re-apply this resource and correct
+      # a drift where the live pool had AllowAdminCreateUserOnly=true (self
+      # sign-up disabled) despite the template's `false` below.
+      UserPoolTags:
+        app: whats-cooking
       # Sign in with email address as the username.
       UsernameAttributes: [email]
       AutoVerifiedAttributes: [email]
