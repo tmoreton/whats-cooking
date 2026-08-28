@@ -8,6 +8,7 @@ import {
   AuthScreen,
 } from "@/components/AuthUI";
 import { signUp } from "@/services/auth";
+import { setPendingSignup } from "@/services/pendingSignup";
 
 export default function SignUpScreen() {
   const [email, setEmail] = useState("");
@@ -34,6 +35,8 @@ export default function SignUpScreen() {
     setLoading(true);
     try {
       await signUp(trimmed, password);
+      // Stash the password so the confirm screen can auto sign-in after the code.
+      setPendingSignup(trimmed, password);
       router.push({ pathname: "/confirm", params: { email: trimmed } });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Couldn't create account.");

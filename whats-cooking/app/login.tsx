@@ -8,6 +8,7 @@ import {
   AuthScreen,
 } from "@/components/AuthUI";
 import { AuthError as AuthErr, signIn } from "@/services/auth";
+import { setPendingSignup } from "@/services/pendingSignup";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -28,6 +29,8 @@ export default function LoginScreen() {
       // The auth gate in _layout redirects to the app once signed in.
     } catch (err) {
       if (err instanceof AuthErr && err.code === "UserNotConfirmedException") {
+        // Carry the password so confirm can auto sign-in after the code.
+        setPendingSignup(trimmed, password);
         router.push({ pathname: "/confirm", params: { email: trimmed } });
         return;
       }

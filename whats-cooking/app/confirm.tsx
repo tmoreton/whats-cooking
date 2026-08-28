@@ -7,7 +7,8 @@ import {
   AuthLink,
   AuthScreen,
 } from "@/components/AuthUI";
-import { confirmSignUp, resendConfirmationCode } from "@/services/auth";
+import { confirmSignUp, resendConfirmationCode, signIn } from "@/services/auth";
+import { takePendingPassword } from "@/services/pendingSignup";
 
 export default function ConfirmScreen() {
   const params = useLocalSearchParams<{ email?: string }>();
@@ -28,6 +29,18 @@ export default function ConfirmScreen() {
     setLoading(true);
     try {
       await confirmSignUp(trimmed, code.trim());
+      // Auto sign-in if we still have the password from signup / login; the
+      // auth gate in _layout then redirects into the app. Otherwise fall back
+      // to the login screen.
+      const password = takePendingPassword(trimmed);
+      if (password) {
+        try {
+          await signIn(trimmed, password);
+          return; // _layout redirects to "/" once the session is set.
+        } catch {
+          // Confirmed, but auto sign-in failed — send them to log in manually.
+        }
+      }
       router.replace("/login");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Couldn't confirm account.");
