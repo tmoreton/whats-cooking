@@ -20,35 +20,44 @@
   <main class="page">
     <span class="eyebrow">Privacy policy</span>
     <h1>Simple, private by design.</h1>
-    <p class="intro">What's Cooking? turns photos of your fridge, pantry, and spice rack into recipe suggestions. This policy explains what happens to your data.</p>
-    <span class="updated">Last updated August 26, 2026</span>
+    <p class="intro">What's Cooking? turns photos of your fridge, pantry, and spice rack into recipe suggestions. This policy explains what information the app handles, why it is used, and your choices.</p>
+    <span class="updated">Last updated August 31, 2026</span>
 
     <section class="card">
       <h2>Information the app processes</h2>
       <ul>
-        <li><strong>Photos you take for a scan.</strong> The app resizes them on your device and sends them securely to our backend so an AI model can identify ingredients and create recipes.</li>
-        <li><strong>Preferences and recent results.</strong> Dietary settings and recent scan results are stored only on your device and are not uploaded.</li>
-        <li><strong>Technical connection data.</strong> Our infrastructure may retain limited request metadata, including an IP address, request identifier, route, status, and timing, in operational and security logs for up to 14 days.</li>
+        <li><strong>Account information.</strong> An account is required to use the scan service. We collect your email address and Amazon Cognito assigns an account identifier. Authentication tokens are stored on your device so you can remain signed in.</li>
+        <li><strong>Photos selected for a scan.</strong> The app resizes them on your device and, after you give explicit consent, sends them securely to our backend so an AI model can identify ingredients and create recipes.</li>
+        <li><strong>Dietary preferences submitted with a scan.</strong> Vegetarian, vegan, and gluten-free choices are sent with each scan so the requested recipes can respect those choices.</li>
+        <li><strong>Preferences and recent results on your device.</strong> Dietary settings and recent scan results are stored locally and are not saved to your account or retained by the backend.</li>
+        <li><strong>Technical connection data.</strong> Our infrastructure retains limited request metadata, including an IP address, request identifier, route, status, and timing, in operational and security logs for no more than 14 days.</li>
       </ul>
-      <p>The app has no account system and does not request your name, email address, contacts, or precise location.</p>
+      <p>The app does not request your name, contacts, precise location, microphone access, or photo-library access.</p>
     </section>
 
     <section class="card">
-      <h2>How photos are used</h2>
-      <p>Photos are transmitted over an encrypted HTTPS connection to our backend on Amazon Web Services in the United States. They are processed transiently to return ingredient and recipe results and are not intentionally retained after that real-time request.</p>
-      <p>We do not sell photos, use them for advertising, or allow third parties to use them for their own marketing.</p>
+      <h2>How photos and AI processing work</h2>
+      <p>Before the first scan upload, the app explains the processing and asks for explicit permission. Photos and dietary preferences are transmitted over an encrypted HTTPS connection to Amazon Web Services in the United States. Anthropic Claude, provided through Amazon Bedrock, processes that information to identify visible ingredients and generate recipe suggestions.</p>
+      <p>Photos and scan inputs are processed for the real-time request and are not intentionally retained by the app backend after the response is returned. They are not sold, used for advertising, or provided to third parties for their own marketing.</p>
+    </section>
+
+    <section class="card">
+      <h2>Service providers</h2>
+      <p>Amazon Web Services provides account authentication, API, logging, runtime, and AI infrastructure. Anthropic provides the Claude AI model through Amazon Bedrock. These providers process information on our behalf to operate the app and are required to protect it consistently with this policy and applicable requirements.</p>
     </section>
 
     <section class="card">
       <h2>Camera access</h2>
-      <p>The app requests camera access only so you can photograph food and ingredients. It does not access your photo library or record audio.</p>
+      <p>The app requests camera access only after you choose to start a scan. The camera is used to photograph food and ingredients. The app does not access your photo library or record audio.</p>
     </section>
 
-    <section class="card">
-      <h2>Retention and your choices</h2>
+    <section class="card" id="choices">
+      <h2>Retention, deletion, and your choices</h2>
       <ul>
+        <li>Withdraw AI photo-processing consent in <strong>Settings → Privacy</strong>. This prevents future scan uploads unless you agree again. Because scan photos are not intentionally retained after processing, there is no stored photo archive to delete.</li>
         <li>Clear recent results from inside the app at any time.</li>
-        <li>Deleting the app removes its on-device preferences and recent results.</li>
+        <li>Permanently delete your account in <strong>Settings → Account → Delete account</strong>. This deletes the Cognito account, email address, account identifier, authentication tokens, preferences, and recent results stored by the app on that device.</li>
+        <li>Deleting the app removes its on-device preferences, recent results, authentication tokens, and saved consent choice.</li>
         <li>Operational and security logs are automatically deleted after no more than 14 days.</li>
       </ul>
     </section>
@@ -56,11 +65,6 @@
     <section class="card">
       <h2>Advertising, analytics, and tracking</h2>
       <p>What's Cooking? contains no advertising or third-party analytics SDKs. We do not track you across apps or websites and do not sell personal data.</p>
-    </section>
-
-    <section class="card">
-      <h2>Service providers</h2>
-      <p>Amazon Web Services provides the infrastructure that processes scan requests on our behalf. We do not share app data with third parties for their own purposes.</p>
     </section>
 
     <section class="card">
@@ -75,7 +79,7 @@
 
     <section class="card">
       <h2>Changes to this policy</h2>
-      <p>We may update this policy as the app changes. The date at the top of this page will show the latest revision.</p>
+      <p>We may update this policy as the app changes. The date at the top of this page will show the latest revision. If a material change affects AI photo processing, the app will ask for consent again.</p>
     </section>
   </main>
 

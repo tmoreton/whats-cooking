@@ -4,6 +4,7 @@ What's Cooking uses AI vision to identify ingredients from photos of your fridge
 
 HOW IT WORKS
 
+• Create an account or sign in with your email
 • Snap one or more photos of your ingredients
 • Choose vegetarian, vegan, or gluten-free preferences
 • Let AI identify what's available
@@ -21,9 +22,10 @@ WHY YOU'LL LOVE IT
 
 PRIVACY BY DESIGN
 
-• No account required
+• Accounts can be deleted directly in Settings
 • No advertising or tracking
 • Preferences and recent results stay on your device
-• Photos are processed only to create your results
+• Photos are sent securely for AI processing only after you agree
+• Scan photos are not intentionally retained after your results are returned
 
 Whether you're planning dinner, using up leftovers, or looking for inspiration, What's Cooking turns a quick photo into your next meal.
